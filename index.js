@@ -1,15 +1,18 @@
-let step = 0;
-
 const solve = board => {
-  return solveGuess(board);
+  const simpleResult = simpleSolve(deepCopy(board));
+
+  if (isSolved(simpleResult)) {
+    return simpleResult;
+  }
+
+  return guessSolve(board, simpleResult);
 };
 
-const solveGuess = (board, guessed = {}) => {
-  // console.log(board, guessed);
+const simpleSolve = board => {
   const map = new Map();
-  const nextBoard = JSON.parse(JSON.stringify(board));
+
   let leastNumOfPossibleValues = 9;
-  let toGuess = { x: 0, y: 0 };
+  let toGuess;
 
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
@@ -26,39 +29,34 @@ const solveGuess = (board, guessed = {}) => {
         const possibleValues = map.get(pos1D);
 
         if (!possibleValues) {
-          // console.log(board, map, possibleValues, '????');
-          // console.log(`${i}-${j}: Invalid board!`);
           return false;
         } else if (possibleValues.length === 1) {
-          nextBoard[i][j] = map.get(pos1D)[0];
-          // console.log(`step ${++step}: ${i}-${j} ${nextBoard[i][j]}`);
-          return solveGuess(nextBoard, guessed);
+          board[i][j] = map.get(pos1D)[0];
+          return simpleSolve(board);
         } else if (possibleValues.length < leastNumOfPossibleValues) {
           leastNumOfPossibleValues = possibleValues.length;
-          toGuess = { x: i, y: j, val: possibleValues };
+          toGuess = { x: i, y: j, vals: possibleValues };
         }
       }
     }
   }
 
-  if (toGuess.val) {
-    for (let i = 0; i < leastNumOfPossibleValues; i++) {
-      const guessedBoard = JSON.parse(JSON.stringify(board));
-      guessedBoard[toGuess.x][toGuess.y] = toGuess.val[i];
-      const result = solveGuess(guessedBoard, { ...toGuess, currIndex: i });
-      if (result) {
-        return result;
-      }
-    }
+  return toGuess || board;
+};
 
-    nextBoard[guessed.x][guessed.y] = guessed.val[guessed.currIndex + 1] || 0;
-    return solveGuess(nextBoard, {
-      ...guessed,
-      currIndex: guessed.currIndex + 1,
-    });
+const guessSolve = (board, toGuess = {}, guessed = []) => {
+  guessed.push(toGuess);
+  const { x, y, vals } = toGuess;
+  for (let i = 0; i < vals.length; i++) {
+    const guessedBoard = deepCopy(board);
+    guessedBoard[x][y] = vals[i];
+    const attemptResult = simpleSolve(guessedBoard);
+    if (isSolved(attemptResult)) {
+      return attemptResult;
+    }
   }
 
-  return board;
+  console.log(guessed);
 };
 
 const isValid = (board, { x, y, val }) => {
@@ -75,6 +73,10 @@ const isValid = (board, { x, y, val }) => {
 
   return true;
 };
+
+const deepCopy = obj => JSON.parse(JSON.stringify(obj));
+
+const isSolved = result => result?.length;
 
 const harderBoard1 = [
   [8, 0, 0, 0, 0, 5, 2, 0, 0],
@@ -136,4 +138,4 @@ const easyBoard = [
   [0, 0, 0, 0, 8, 0, 0, 7, 9],
 ];
 
-solve(harderBoard1);
+solve(mediumBoard);
