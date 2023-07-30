@@ -2,8 +2,7 @@ let numGuesses = 0;
 
 const solve = board => {
   if (!isBoardValid(board)) {
-    alert('invalid board');
-    return;
+    return 'invalid board';
   }
 
   const simpleResult = simpleSolve(deepCopy(board));
@@ -136,6 +135,7 @@ const isSolved = result => result?.length;
 const analyze = board => {
   const analysis = [];
   let variations = 1;
+  let result;
   numGuesses = 0;
 
   for (let i = 0; i < 9; i++) {
@@ -153,15 +153,22 @@ const analyze = board => {
     }
   }
 
-  console.log('result: ', solve(board));
-  console.log('possible values: ', analysis);
-  console.log(`variations: ${variations}`);
-  console.log(`complexity: ${numGuesses}`);
+  try {
+    result = solve(board);
+  } catch (e) {
+    console.log(result);
+  } finally {
+    console.log('original board: ', board);
+    console.log('result: ', result);
+    console.log('possible values: ', analysis);
+    console.log(`variations: ${variations}`);
+    console.log(`complexity: ${numGuesses}`);
+  }
 };
 
 // difficulty level equals number of needed guesses
 
-// board[2][4] should be 0 or 3
+// board[2][4] should not be 8
 const unsolvableBoard = [
   [0, 8, 0, 1, 0, 0, 0, 2, 0],
   [0, 0, 0, 9, 0, 0, 0, 5, 0],
@@ -336,11 +343,34 @@ const invalidBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
-analyze(unsolvableBoard2);
+// http://www.sudokufans.org.cn/forums/topic/438/
+const hardestBoardCodes = [
+  '016300000008000000490070200000057000000040900050100060081000030000000008900005700',
+  '000000800002070040000300601600100005009040000000057000007005090300000108080000000',
+  '061300000400070020080000000005100600000040090000057000000000008018000300900005070',
+  '090000004100000860800005010000001030000540007050700000300006000070090002008000000',
+  '007090002300006000080000000005700000000540007000001300009000004800005100100000680',
+];
+
+const toBoard = code => {
+  const board = deepCopy(emptyBoard);
+  for (let i = 0; i < 9; i++) {
+    for (let j = 0; j < 9; j++) {
+      board[i][j] = +code[i * 9 + j];
+    }
+  }
+  return board;
+};
+
+solve(toBoard(hardestBoardCodes[1]));
+
+// for (const code of hardestBoardCodes) {
+//   solve(toBoard(code));
+// }
 
 /** Features */
 
 // 1. simple solve
 // 2. guess solve
-// 3. analyze the board - unsolvable board; all possible solutions; difficulty?
+// 3. analyze the board - unsolvable board; all possible solutions; difficulty score?
 // 4. generate the hardest sodoku?
