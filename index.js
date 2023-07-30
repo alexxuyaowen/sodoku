@@ -5,7 +5,9 @@ const solve = board => {
     return simpleResult;
   }
 
-  return guessSolve(board, simpleResult);
+  return guessSolve(board, simpleResult, [
+    { prevBoard: board, prevGuess: simpleResult },
+  ]);
 };
 
 const simpleSolve = board => {
@@ -44,7 +46,7 @@ const simpleSolve = board => {
   return toGuess || board;
 };
 
-const guessSolve = (board, toGuess, guessed = []) => {
+const guessSolve = (board, toGuess, history = []) => {
   const { x, y, vals } = toGuess;
   for (let i = 0; i < vals.length; i++) {
     const guessedBoard = deepCopy(board);
@@ -54,17 +56,23 @@ const guessSolve = (board, toGuess, guessed = []) => {
       return attemptResult;
     } else if (attemptResult) {
       return guessSolve(guessedBoard, attemptResult, [
-        ...guessed,
-        attemptResult,
+        ...history,
+        { prevBoard: board, prevGuess: attemptResult },
       ]);
     }
   }
 
-  guessed.pop();
-  board[x][y] = 0;
-  const prevGuess = { ...guessed.at(-1) };
-  prevGuess.vals.shift();
-  return guessSolve(board, prevGuess, guessed);
+  history.pop();
+  let latestHistory = history.at(-1);
+
+  while (latestHistory.prevGuess.vals.length < 2) {
+    history.pop();
+    latestHistory = history.at(-1);
+    board = latestHistory.prevBoard;
+  }
+
+  latestHistory.prevGuess.vals.shift();
+  return guessSolve(board, latestHistory.prevGuess, history);
 };
 
 const isValid = (board, { x, y, val }) => {
