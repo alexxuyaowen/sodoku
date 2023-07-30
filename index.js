@@ -88,7 +88,7 @@ const guessSolve = (board, toGuess, history = []) => {
     history.pop();
     latestHistory = history.at(-1);
     board = latestHistory.prevBoard;
-    guessedIndex = latestHistory.prevBoard.guessedIndex;
+    guessedIndex = latestHistory.guessedIndex;
   }
 
   latestHistory.prevGuess.vals.splice(guessedIndex, 1);
