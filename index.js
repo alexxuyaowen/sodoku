@@ -52,6 +52,7 @@ const simpleSolve = board => {
 };
 
 const guessSolve = (board, toGuess, history = []) => {
+  ++times;
   let leastNumOfPossibleValues = 10;
   let nextGuess;
   let nextBoard;
@@ -86,10 +87,12 @@ const guessSolve = (board, toGuess, history = []) => {
   while (latestHistory.prevGuess.vals.length < 2) {
     history.pop();
     latestHistory = history.at(-1);
+    if (!latestHistory) return 'unsolvable board';
     board = latestHistory.prevBoard;
     guessedIndex = latestHistory.guessedIndex;
   }
 
+  if (!latestHistory) return 'unsolvable board';
   latestHistory.prevGuess.vals.splice(guessedIndex, 1);
   return guessSolve(board, latestHistory.prevGuess, history);
 };
@@ -129,11 +132,12 @@ const deepCopy = board => board.map(e => [...e]);
 
 const isSolved = result => result?.length;
 
-/** TESTS BELOW */
+/** TESTS AREA */
 
-const analyzeBoard = board => {
+const analyze = board => {
   const analysis = [];
   let variations = 1;
+  times = 0;
 
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
@@ -150,13 +154,27 @@ const analyzeBoard = board => {
     }
   }
 
+  console.log('result: ', solve(board));
+  console.log('possible values: ', analysis);
   console.log(`variations: ${variations}`);
-  return analysis;
+  console.log(`complexity: ${times}`);
 };
 
 // difficulty level equals number of needed guesses
 
-// 9.586591201964852e36
+const hardestBoardPlus = [
+  [0, 8, 0, 1, 0, 0, 0, 2, 0],
+  [0, 0, 0, 9, 0, 0, 0, 5, 0],
+  [9, 7, 2, 0, 0, 0, 0, 6, 0],
+  [4, 0, 0, 0, 2, 6, 0, 0, 0],
+  [0, 0, 0, 0, 5, 0, 7, 0, 0],
+  [8, 0, 1, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 6, 9, 5, 0, 0, 0],
+  [0, 2, 5, 0, 0, 0, 0, 0, 9],
+  [0, 0, 0, 0, 4, 0, 0, 0, 1],
+];
+
+// 2102
 const hardestBoard = [
   [8, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 3, 6, 0, 0, 0, 0, 0],
@@ -169,6 +187,7 @@ const hardestBoard = [
   [0, 9, 0, 0, 0, 0, 4, 0, 0],
 ];
 
+// 87
 const evenHarderBoard = [
   [0, 8, 6, 9, 0, 0, 1, 7, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -181,6 +200,7 @@ const evenHarderBoard = [
   [0, 6, 1, 0, 0, 7, 8, 2, 0],
 ];
 
+// 342
 const evenHarderBoard2 = [
   [0, 8, 6, 9, 0, 0, 1, 7, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -193,6 +213,7 @@ const evenHarderBoard2 = [
   [0, 6, 1, 0, 0, 7, 8, 2, 0],
 ];
 
+// 38
 const harderBoard = [
   [8, 0, 0, 0, 0, 5, 2, 0, 0],
   [0, 0, 0, 0, 6, 0, 0, 3, 0],
@@ -205,6 +226,7 @@ const harderBoard = [
   [0, 0, 6, 7, 3, 0, 0, 2, 0],
 ];
 
+// 8
 const hardBoard = [
   [7, 0, 0, 0, 0, 4, 0, 2, 0],
   [0, 9, 0, 0, 0, 0, 3, 0, 0],
@@ -277,7 +299,6 @@ const invalidBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
-solve(hardestBoard);
-// analyzeBoard(evenHarderBoard);
+analyze(hardestBoardPlus);
 
 // TODO: sodoku generator
