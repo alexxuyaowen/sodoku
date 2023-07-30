@@ -1,4 +1,4 @@
-let time = 0;
+let times = 0;
 
 const solve = board => {
   if (!isBoardValid(board)) {
@@ -52,20 +52,30 @@ const simpleSolve = board => {
 };
 
 const guessSolve = (board, toGuess, history = []) => {
-  // console.log(++time);
+  let leastNumOfPossibleValues = 10;
+  let nextGuess;
+  let nextBoard;
   const { x, y, vals } = toGuess;
   for (let i = 0; i < vals.length; i++) {
     const guessedBoard = deepCopy(board);
     guessedBoard[x][y] = vals[i];
-    const attemptResult = simpleSolve(guessedBoard);
-    if (isSolved(attemptResult)) {
-      return attemptResult;
-    } else if (attemptResult) {
-      return guessSolve(guessedBoard, attemptResult, [
-        ...history,
-        { prevBoard: board, prevGuess: attemptResult },
-      ]);
+    const attemptedResult = simpleSolve(guessedBoard);
+    if (isSolved(attemptedResult)) {
+      return attemptedResult;
+    } else if (attemptedResult) {
+      if (attemptedResult.vals.length < leastNumOfPossibleValues) {
+        leastNumOfPossibleValues = attemptedResult.vals.length;
+        nextGuess = attemptedResult;
+        nextBoard = guessedBoard;
+      }
     }
+  }
+
+  if (nextGuess) {
+    return guessSolve(nextBoard, nextGuess, [
+      ...history,
+      { prevBoard: board, prevGuess: toGuess },
+    ]);
   }
 
   history.pop();
@@ -264,7 +274,7 @@ const invalidBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
-solve(evenHarderBoard2);
+solve(hardestBoard);
 // analyzeBoard(evenHarderBoard);
 
 // TODO: sodoku generator
