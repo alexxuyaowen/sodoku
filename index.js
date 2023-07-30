@@ -16,33 +16,20 @@ const solve = board => {
 };
 
 const simpleSolve = board => {
-  const board1D = [];
-
   let leastNumOfPossibleValues = 10;
   let toGuess;
 
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
-      const pos1D = i * 9 + j;
-      if (board[i][j]) {
-        board1D.push(board[i][j]);
-      } else {
-        for (let val = 1; val <= 9; val++) {
-          if (isValid(board, { x: i, y: j, val })) {
-            if (board1D[pos1D]) {
-              board1D[pos1D].push(val);
-            } else {
-              board1D[pos1D] = [val];
-            }
-          }
-        }
+      if (!board[i][j]) {
+        const possibleValues = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(val =>
+          isValid(board, { x: i, y: j, val })
+        );
 
-        const possibleValues = board1D[pos1D];
-
-        if (!possibleValues) {
+        if (!possibleValues.length) {
           return false;
         } else if (possibleValues.length === 1) {
-          board[i][j] = board1D[pos1D].pop();
+          board[i][j] = possibleValues[0];
           return simpleSolve(board);
         } else if (possibleValues.length < leastNumOfPossibleValues) {
           leastNumOfPossibleValues = possibleValues.length;
