@@ -115,6 +115,20 @@ const deepCopy = obj => JSON.parse(JSON.stringify(obj));
 
 const isSolved = result => result?.length;
 
+/** TESTS BELOW */
+
+const hardestBoard = [
+  [8, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 3, 6, 0, 0, 0, 0, 0],
+  [0, 7, 0, 0, 9, 0, 2, 0, 0],
+  [0, 5, 0, 0, 0, 7, 0, 0, 0],
+  [0, 0, 0, 0, 4, 5, 7, 0, 0],
+  [0, 0, 0, 1, 0, 0, 0, 3, 0],
+  [0, 0, 1, 0, 0, 0, 0, 6, 8],
+  [0, 0, 8, 5, 0, 0, 0, 1, 0],
+  [0, 9, 0, 0, 0, 0, 4, 0, 0],
+];
+
 const harderBoard1 = [
   [8, 0, 0, 0, 0, 5, 2, 0, 0],
   [0, 0, 0, 0, 6, 0, 0, 3, 0],
@@ -211,4 +225,4 @@ const invalidBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
-solve(dummyBoard);
+solve(hardestBoard);
