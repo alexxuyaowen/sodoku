@@ -1,3 +1,5 @@
+let time = 0;
+
 const solve = board => {
   if (!isBoardValid(board)) {
     alert('invalid board');
@@ -50,6 +52,7 @@ const simpleSolve = board => {
 };
 
 const guessSolve = (board, toGuess, history = []) => {
+  // console.log(++time);
   const { x, y, vals } = toGuess;
   for (let i = 0; i < vals.length; i++) {
     const guessedBoard = deepCopy(board);
@@ -117,6 +120,7 @@ const isSolved = result => result?.length;
 
 const analyzeBoard = board => {
   const analysis = [];
+  let variations = 1;
 
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
@@ -129,12 +133,17 @@ const analyzeBoard = board => {
       } else {
         analysis.push(board[i][j]);
       }
+      variations *= analysis.at(-1).length || 1;
     }
   }
 
+  console.log(`variations: ${variations}`);
   return analysis;
 };
 
+// difficulty level equals number of needed guesses
+
+// 9.586591201964852e36
 const hardestBoard = [
   [8, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 3, 6, 0, 0, 0, 0, 0],
@@ -256,6 +265,6 @@ const invalidBoard = [
 ];
 
 solve(evenHarderBoard2);
-// analyzeBoard(hardestBoard);
+// analyzeBoard(evenHarderBoard);
 
 // TODO: sodoku generator
