@@ -1,4 +1,9 @@
 const solve = board => {
+  if (!isBoardValid(board)) {
+    alert('invalid board');
+    return;
+  }
+
   const simpleResult = simpleSolve(deepCopy(board));
 
   if (isSolved(simpleResult)) {
@@ -13,7 +18,7 @@ const solve = board => {
 const simpleSolve = board => {
   const map = new Map();
 
-  let leastNumOfPossibleValues = 9;
+  let leastNumOfPossibleValues = 10;
   let toGuess;
 
   for (let i = 0; i < 9; i++) {
@@ -90,6 +95,20 @@ const isValid = (board, { x, y, val }) => {
   return true;
 };
 
+const isBoardValid = board => {
+  for (let i = 0; i < 9; i++) {
+    for (let j = 0; j < 9; j++) {
+      if (!board[i][j]) {
+        const resetBoard = deepCopy(board);
+        resetBoard[i][j] = 0;
+        if (!isValid(resetBoard, { x: i, y: j, val: board[i][j] })) {
+          return false;
+        }
+      }
+    }
+  }
+};
+
 const deepCopy = obj => JSON.parse(JSON.stringify(obj));
 
 const isSolved = result => result?.length;
@@ -154,4 +173,40 @@ const easyBoard = [
   [0, 0, 0, 0, 8, 0, 0, 7, 9],
 ];
 
-solve(harderBoard1);
+const emptyBoard = [
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+];
+
+const dummyBoard = [
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 9, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+];
+
+const invalidBoard = [
+  [1, 1, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+];
+
+solve(invalidBoard);
