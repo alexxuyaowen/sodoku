@@ -52,7 +52,6 @@ const simpleSolve = board => {
 };
 
 const guessSolve = (board, toGuess, history = []) => {
-  console.log(++times);
   let leastNumOfPossibleValues = 10;
   let nextGuess;
   let nextBoard;
@@ -77,7 +76,7 @@ const guessSolve = (board, toGuess, history = []) => {
   if (nextGuess) {
     return guessSolve(nextBoard, nextGuess, [
       ...history,
-      { prevBoard: board, prevGuess: toGuess, guessedIndex },
+      { prevBoard: nextBoard, prevGuess: nextGuess, guessedIndex },
     ]);
   }
 
@@ -278,7 +277,7 @@ const invalidBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
-solve(evenHarderBoard2);
+solve(hardestBoard);
 // analyzeBoard(evenHarderBoard);
 
 // TODO: sodoku generator
