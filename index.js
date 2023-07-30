@@ -16,7 +16,7 @@ const solve = board => {
 };
 
 const simpleSolve = board => {
-  const map = new Map();
+  const board1D = [];
 
   let leastNumOfPossibleValues = 10;
   let toGuess;
@@ -25,20 +25,24 @@ const simpleSolve = board => {
     for (let j = 0; j < 9; j++) {
       const pos1D = i * 9 + j;
       if (board[i][j]) {
-        map.set(pos1D, board[i][j]);
+        board1D.push(board[i][j]);
       } else {
         for (let val = 1; val <= 9; val++) {
           if (isValid(board, { x: i, y: j, val })) {
-            map.set(pos1D, map.has(pos1D) ? [...map.get(pos1D), val] : [val]);
+            if (board1D[pos1D]) {
+              board1D[pos1D].push(val);
+            } else {
+              board1D[pos1D] = [val];
+            }
           }
         }
 
-        const possibleValues = map.get(pos1D);
+        const possibleValues = board1D[pos1D];
 
         if (!possibleValues) {
           return false;
         } else if (possibleValues.length === 1) {
-          board[i][j] = map.get(pos1D)[0];
+          board[i][j] = board1D[pos1D].pop();
           return simpleSolve(board);
         } else if (possibleValues.length < leastNumOfPossibleValues) {
           leastNumOfPossibleValues = possibleValues.length;
@@ -111,7 +115,7 @@ const isBoardValid = board => {
   return true;
 };
 
-const deepCopy = obj => JSON.parse(JSON.stringify(obj));
+const deepCopy = board => board.map(e => [...e]);
 
 const isSolved = result => result?.length;
 
