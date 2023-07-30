@@ -22,9 +22,16 @@ const simpleSolve = board => {
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
       if (!board[i][j]) {
-        const possibleValues = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(val =>
-          isValid(board, { x: i, y: j, val })
-        );
+        const possibleValues = [];
+        for (
+          let val = 1;
+          val <= 9 && possibleValues.length < leastNumOfPossibleValues;
+          val++
+        ) {
+          if (isValid(board, { x: i, y: j, val })) {
+            possibleValues.push(val);
+          }
+        }
 
         if (!possibleValues.length) {
           return false;
@@ -107,6 +114,26 @@ const deepCopy = board => board.map(e => [...e]);
 const isSolved = result => result?.length;
 
 /** TESTS BELOW */
+
+const analyzeBoard = board => {
+  const analysis = [];
+
+  for (let i = 0; i < 9; i++) {
+    for (let j = 0; j < 9; j++) {
+      if (!board[i][j]) {
+        analysis.push(
+          [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(val =>
+            isValid(board, { x: i, y: j, val })
+          )
+        );
+      } else {
+        analysis.push(board[i][j]);
+      }
+    }
+  }
+
+  return analysis;
+};
 
 const hardestBoard = [
   [8, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -229,3 +256,6 @@ const invalidBoard = [
 ];
 
 solve(evenHarderBoard2);
+// analyzeBoard(hardestBoard);
+
+// TODO: sodoku generator
