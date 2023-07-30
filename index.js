@@ -84,7 +84,7 @@ const guessSolve = (board, toGuess, history = []) => {
   history.pop();
   let latestHistory = history.at(-1);
 
-  while (latestHistory.toGuess.vals.length < 2) {
+  while (latestHistory?.toGuess.vals.length < 2) {
     history.pop();
     latestHistory = history.at(-1);
   }
@@ -159,11 +159,11 @@ const analyze = board => {
 
 // difficulty level equals number of needed guesses
 
-// 54
-const extraBoard = [
+// board[2][4] should be 3 or 0
+const unsolvableBoard = [
   [0, 8, 0, 1, 0, 0, 0, 2, 0],
   [0, 0, 0, 9, 0, 0, 0, 5, 0],
-  [9, 7, 2, 0, 0, 0, 0, 6, 0],
+  [9, 7, 2, 0, 8, 0, 0, 6, 0],
   [4, 0, 0, 0, 2, 6, 0, 0, 0],
   [0, 0, 0, 0, 5, 0, 7, 0, 0],
   [8, 0, 1, 0, 0, 0, 0, 0, 0],
@@ -298,6 +298,18 @@ const miracleBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
+const miracleBoard2 = [
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [1, 0, 2, 0, 0, 0, 0, 0, 0],
+];
+
 const invalidBoard = [
   [1, 1, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -310,6 +322,11 @@ const invalidBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
-analyze(miracleBoard);
+analyze(unsolvableBoard);
 
-// TODO: sodoku generator
+/** Features */
+
+// 1. simple solve
+// 2. guess solve
+// 3. analyze the board - unsolvable board; all possible solutions; difficulty?
+// 4. generate the hardest sodoku?
