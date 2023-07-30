@@ -12,6 +12,8 @@ const solve = board => {
     return simpleResult;
   }
 
+  if (!simpleResult) return 'unsolvable board';
+
   return guessSolve(board, simpleResult, [
     { prevBoard: board, toGuess: simpleResult },
   ]);
@@ -159,11 +161,23 @@ const analyze = board => {
 
 // difficulty level equals number of needed guesses
 
-// board[2][4] should be 3 or 0
+// board[2][4] should be 0 or 3
 const unsolvableBoard = [
   [0, 8, 0, 1, 0, 0, 0, 2, 0],
   [0, 0, 0, 9, 0, 0, 0, 5, 0],
   [9, 7, 2, 0, 8, 0, 0, 6, 0],
+  [4, 0, 0, 0, 2, 6, 0, 0, 0],
+  [0, 0, 0, 0, 5, 0, 7, 0, 0],
+  [8, 0, 1, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 6, 9, 5, 0, 0, 0],
+  [0, 2, 5, 0, 0, 0, 0, 0, 9],
+  [0, 0, 0, 0, 4, 0, 0, 0, 1],
+];
+
+const unsolvableBoard2 = [
+  [0, 8, 0, 1, 7, 0, 0, 2, 0],
+  [0, 0, 0, 9, 0, 0, 0, 5, 0],
+  [9, 7, 2, 0, 3, 0, 0, 6, 0],
   [4, 0, 0, 0, 2, 6, 0, 0, 0],
   [0, 0, 0, 0, 5, 0, 7, 0, 0],
   [8, 0, 1, 0, 0, 0, 0, 0, 0],
@@ -322,7 +336,7 @@ const invalidBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
-analyze(unsolvableBoard);
+analyze(unsolvableBoard2);
 
 /** Features */
 
