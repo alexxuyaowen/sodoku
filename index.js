@@ -44,8 +44,7 @@ const simpleSolve = board => {
   return toGuess || board;
 };
 
-const guessSolve = (board, toGuess = {}, guessed = []) => {
-  guessed.push(toGuess);
+const guessSolve = (board, toGuess, guessed = []) => {
   const { x, y, vals } = toGuess;
   for (let i = 0; i < vals.length; i++) {
     const guessedBoard = deepCopy(board);
@@ -53,10 +52,19 @@ const guessSolve = (board, toGuess = {}, guessed = []) => {
     const attemptResult = simpleSolve(guessedBoard);
     if (isSolved(attemptResult)) {
       return attemptResult;
+    } else if (attemptResult) {
+      return guessSolve(guessedBoard, attemptResult, [
+        ...guessed,
+        attemptResult,
+      ]);
     }
   }
 
-  console.log(guessed);
+  guessed.pop();
+  board[x][y] = 0;
+  const prevGuess = { ...guessed.at(-1) };
+  prevGuess.vals.shift();
+  return guessSolve(board, prevGuess, guessed);
 };
 
 const isValid = (board, { x, y, val }) => {
@@ -138,4 +146,4 @@ const easyBoard = [
   [0, 0, 0, 0, 8, 0, 0, 7, 9],
 ];
 
-solve(mediumBoard);
+solve(harderBoard1);
