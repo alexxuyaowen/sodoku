@@ -98,7 +98,7 @@ const isValid = (board, { x, y, val }) => {
 const isBoardValid = board => {
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
-      if (!board[i][j]) {
+      if (board[i][j]) {
         const resetBoard = deepCopy(board);
         resetBoard[i][j] = 0;
         if (!isValid(resetBoard, { x: i, y: j, val: board[i][j] })) {
@@ -107,6 +107,8 @@ const isBoardValid = board => {
       }
     }
   }
+
+  return true;
 };
 
 const deepCopy = obj => JSON.parse(JSON.stringify(obj));
@@ -209,4 +211,4 @@ const invalidBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
-solve(invalidBoard);
+solve(dummyBoard);
