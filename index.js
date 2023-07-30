@@ -1,4 +1,4 @@
-let times = 0;
+let numGuesses = 0;
 
 const solve = board => {
   if (!isBoardValid(board)) {
@@ -13,7 +13,7 @@ const solve = board => {
   }
 
   return guessSolve(board, simpleResult, [
-    { prevBoard: board, prevGuess: simpleResult },
+    { prevBoard: board, toGuess: simpleResult },
   ]);
 };
 
@@ -52,7 +52,7 @@ const simpleSolve = board => {
 };
 
 const guessSolve = (board, toGuess, history = []) => {
-  ++times;
+  ++numGuesses;
   let leastNumOfPossibleValues = 10;
   let nextGuess;
   let nextBoard;
@@ -77,24 +77,21 @@ const guessSolve = (board, toGuess, history = []) => {
   if (nextGuess) {
     return guessSolve(nextBoard, nextGuess, [
       ...history,
-      { prevBoard: nextBoard, prevGuess: nextGuess, guessedIndex },
+      { prevBoard: nextBoard, toGuess: nextGuess, guessedIndex },
     ]);
   }
 
   history.pop();
   let latestHistory = history.at(-1);
 
-  while (latestHistory.prevGuess.vals.length < 2) {
+  while (latestHistory.toGuess.vals.length < 2) {
     history.pop();
     latestHistory = history.at(-1);
-    if (!latestHistory) return 'unsolvable board';
-    board = latestHistory.prevBoard;
-    guessedIndex = latestHistory.guessedIndex;
   }
 
   if (!latestHistory) return 'unsolvable board';
-  latestHistory.prevGuess.vals.splice(guessedIndex, 1);
-  return guessSolve(board, latestHistory.prevGuess, history);
+  latestHistory.toGuess.vals.splice(latestHistory.guessedIndex, 1);
+  return guessSolve(latestHistory.prevBoard, latestHistory.toGuess, history);
 };
 
 const isValid = (board, { x, y, val }) => {
@@ -137,7 +134,7 @@ const isSolved = result => result?.length;
 const analyze = board => {
   const analysis = [];
   let variations = 1;
-  times = 0;
+  numGuesses = 0;
 
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
@@ -157,12 +154,13 @@ const analyze = board => {
   console.log('result: ', solve(board));
   console.log('possible values: ', analysis);
   console.log(`variations: ${variations}`);
-  console.log(`complexity: ${times}`);
+  console.log(`complexity: ${numGuesses}`);
 };
 
 // difficulty level equals number of needed guesses
 
-const hardestBoardPlus = [
+// 54
+const extraBoard = [
   [0, 8, 0, 1, 0, 0, 0, 2, 0],
   [0, 0, 0, 9, 0, 0, 0, 5, 0],
   [9, 7, 2, 0, 0, 0, 0, 6, 0],
@@ -174,7 +172,7 @@ const hardestBoardPlus = [
   [0, 0, 0, 0, 4, 0, 0, 0, 1],
 ];
 
-// 2102
+// 3309
 const hardestBoard = [
   [8, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 3, 6, 0, 0, 0, 0, 0],
@@ -187,7 +185,7 @@ const hardestBoard = [
   [0, 9, 0, 0, 0, 0, 4, 0, 0],
 ];
 
-// 87
+// 120
 const evenHarderBoard = [
   [0, 8, 6, 9, 0, 0, 1, 7, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -200,7 +198,7 @@ const evenHarderBoard = [
   [0, 6, 1, 0, 0, 7, 8, 2, 0],
 ];
 
-// 342
+// 230
 const evenHarderBoard2 = [
   [0, 8, 6, 9, 0, 0, 1, 7, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -213,7 +211,7 @@ const evenHarderBoard2 = [
   [0, 6, 1, 0, 0, 7, 8, 2, 0],
 ];
 
-// 38
+// 41
 const harderBoard = [
   [8, 0, 0, 0, 0, 5, 2, 0, 0],
   [0, 0, 0, 0, 6, 0, 0, 3, 0],
@@ -239,6 +237,7 @@ const hardBoard = [
   [1, 0, 0, 3, 0, 0, 0, 0, 0],
 ];
 
+// 1
 const mediumBoard = [
   [0, 5, 0, 0, 6, 4, 7, 3, 2],
   [0, 7, 0, 5, 0, 0, 4, 0, 8],
@@ -299,6 +298,6 @@ const invalidBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
-analyze(hardestBoardPlus);
+analyze(extraBoard);
 
 // TODO: sodoku generator
