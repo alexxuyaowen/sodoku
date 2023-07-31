@@ -1,30 +1,35 @@
-let numGuesses = 0;
-
-const solve = board => {
+/* eslint-disable */
+const solve = (board) => {
   if (!isBoardValid(board)) {
-    return 'invalid board';
+    return "invalid board";
   }
 
-  const { toGuess, simpleSolvedBoard } = simpleSolve(board);
+  const steps = [];
+
+  const { toGuess, simpleSolvedBoard } = simpleSolve(board, steps);
 
   if (isSolved(simpleSolvedBoard)) {
-    return simpleSolvedBoard;
+    return { board: simpleSolvedBoard, steps };
   } else if (toGuess) {
-    return guessSolve(simpleSolvedBoard, toGuess, [
-      { prevBoard: simpleSolvedBoard, toGuess },
-    ]);
+    return guessSolve(
+      simpleSolvedBoard,
+      toGuess,
+      [{ prevBoard: simpleSolvedBoard, toGuess }],
+      steps
+    );
   }
 
-  return 'unsolvable board';
+  return { board: "unsolvable board" };
 };
 
-const simpleSolve = board => {
+const simpleSolve = (board, steps) => {
   const simpleSolvedBoard = deepCopy(board);
-  let toGuess;
+  const simpleSolvedSteps = deepCopy(steps);
   while (true) {
     let leastNumOfPossibleValues = 10;
     let isSolving = false;
-    toGuess = undefined;
+    let toGuess = undefined;
+
     for (let i = 0; i < 9; i++) {
       for (let j = 0; j < 9; j++) {
         if (!simpleSolvedBoard[i][j]) {
@@ -44,6 +49,12 @@ const simpleSolve = board => {
           } else if (possibleValues.length === 1) {
             simpleSolvedBoard[i][j] = possibleValues[0];
             isSolving = true;
+            simpleSolvedSteps.push({
+              step: simpleSolvedSteps.length + 1,
+              x: i,
+              y: j,
+              val: possibleValues[0],
+            });
           } else if (possibleValues.length < leastNumOfPossibleValues) {
             leastNumOfPossibleValues = possibleValues.length;
             toGuess = { x: i, y: j, vals: possibleValues };
@@ -51,46 +62,83 @@ const simpleSolve = board => {
         }
       }
     }
-    if (!isSolving) break;
-  }
 
-  return { toGuess, simpleSolvedBoard };
+    if (!isSolving) {
+      steps.push(...simpleSolvedSteps);
+      return { toGuess, simpleSolvedBoard };
+    }
+  }
 };
 
-const guessSolve = (board, toGuess, history = []) => {
-  ++numGuesses;
+const guessSolve = (board, toGuess, history = [], steps) => {
+  while (true) {
+    const { x, y, vals } = toGuess;
+    if (vals.length) {
+      const guessedBoard = deepCopy(board);
+      guessedBoard[x][y] = vals[0];
 
-  const { x, y, vals } = toGuess;
-  if (vals.length) {
-    const guessedBoard = deepCopy(board);
-    guessedBoard[x][y] = vals[0];
+      const simpleSolvedSteps = [];
+      const { toGuess: nextGuess, simpleSolvedBoard } = simpleSolve(
+        guessedBoard,
+        simpleSolvedSteps
+      );
 
-    const { toGuess: nextGuess, simpleSolvedBoard } = simpleSolve(guessedBoard);
+      if (isSolved(simpleSolvedBoard)) {
+        for (const h of history) {
+          steps.push({
+            step: steps.length + 1,
+            x: h.toGuess.x,
+            y: h.toGuess.y,
+            val: h.toGuess.vals[0],
+            needGuess: true,
+          });
+          const simpleSteps = h.simpleSolvedSteps?.map((step) => ({
+            ...step,
+            step: step.step + steps.length,
+          }));
+          if (simpleSteps) {
+            steps.push(...simpleSteps);
+          }
+        }
 
-    if (isSolved(simpleSolvedBoard)) {
-      return simpleSolvedBoard;
-    } else if (nextGuess) {
-      return guessSolve(simpleSolvedBoard, nextGuess, [
-        ...history,
-        { prevBoard: simpleSolvedBoard, toGuess: nextGuess },
-      ]);
+        const simpleSteps = simpleSolvedSteps?.map((step) => ({
+          ...step,
+          step: step.step + steps.length,
+        }));
+        if (simpleSteps) {
+          steps.push(...simpleSteps);
+        }
+
+        return {
+          board: simpleSolvedBoard,
+          steps,
+        };
+      } else if (nextGuess) {
+        board = simpleSolvedBoard;
+        toGuess = nextGuess;
+        history.push({
+          prevBoard: simpleSolvedBoard,
+          toGuess: nextGuess,
+          simpleSolvedSteps,
+        });
+      } else {
+        vals.shift();
+      }
+    } else {
+      history.pop();
+      let latestHistory = history.at(-1);
+
+      while (latestHistory?.toGuess.vals.length === 1) {
+        history.pop();
+        latestHistory = history.at(-1);
+      }
+
+      if (!latestHistory) return { board: "unsolvable board" };
+      latestHistory.toGuess.vals.shift();
+      board = latestHistory.prevBoard;
+      toGuess = latestHistory.toGuess;
     }
-
-    vals.shift();
-    return guessSolve(board, toGuess, history);
   }
-
-  history.pop();
-  let latestHistory = history.at(-1);
-
-  while (latestHistory?.toGuess.vals.length < 2) {
-    history.pop();
-    latestHistory = history.at(-1);
-  }
-
-  if (!latestHistory) return 'unsolvable board';
-  latestHistory.toGuess.vals.shift();
-  return guessSolve(latestHistory.prevBoard, latestHistory.toGuess, history);
 };
 
 const isValid = (board, { x, y, val }) => {
@@ -108,7 +156,7 @@ const isValid = (board, { x, y, val }) => {
   return true;
 };
 
-const isBoardValid = board => {
+const isBoardValid = (board) => {
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
       if (board[i][j]) {
@@ -124,30 +172,29 @@ const isBoardValid = board => {
   return true;
 };
 
-const deepCopy = board => board.map(e => [...e]);
+const deepCopy = (arr) =>
+  arr.map((e) => (Array.isArray(e) ? [...e] : { ...e }));
 
-const isSolved = board => Array.isArray(board) && !board.flat().includes(0);
+const isSolved = (board) => Array.isArray(board) && !board.flat().includes(0);
 
 /** TESTS AREA */
 
-const analyze = board => {
+const analyze = (board) => {
   const analysis = [];
-  let variations = 1;
-  let result;
-  numGuesses = 0;
+  let result = {};
+  const startTime = Date.now();
 
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
       if (!board[i][j]) {
         analysis.push(
-          [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(val =>
+          [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((val) =>
             isValid(board, { x: i, y: j, val })
           )
         );
       } else {
         analysis.push(board[i][j]);
       }
-      variations *= analysis.at(-1).length || 1;
     }
   }
 
@@ -156,11 +203,18 @@ const analyze = board => {
   } catch (e) {
     console.error(e);
   } finally {
-    console.log('original board: ', board);
-    console.log('result: ', result);
-    console.log('possible values: ', analysis);
-    console.log(`variations: ${variations}`);
-    console.log(`complexity: ${numGuesses}`);
+    console.log("original board:", board);
+    console.log("steps:", result.steps);
+    console.log("result:", result.board);
+    console.log("possible values for each cell:", analysis);
+    console.log(
+      "number of empty cells:",
+      analysis.reduce((count, cell) => count + Array.isArray(cell), 0)
+    );
+    console.log(
+      `variations: ${analysis.reduce((total, x) => total * (x.length || 1), 1)}`
+    );
+    console.log(`time spent: ${Date.now() - startTime}ms`);
   }
 };
 
@@ -281,18 +335,6 @@ const easyBoard = [
   [0, 0, 0, 0, 8, 0, 0, 7, 9],
 ];
 
-const emptyBoard = [
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-];
-
 const dummyBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -303,30 +345,6 @@ const dummyBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
-];
-
-const miracleBoard = [
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 1, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 2, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-];
-
-const miracleBoard2 = [
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [1, 0, 2, 0, 0, 0, 0, 0, 0],
 ];
 
 const invalidBoard = [
@@ -341,16 +359,28 @@ const invalidBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
-// http://www.sudokufans.org.cn/forums/topic/438/
-const hardestBoardCodes = [
-  '016300000008000000490070200000057000000040900050100060081000030000000008900005700',
-  '000000800002070040000300601600100005009040000000057000007005090300000108080000000',
-  '061300000400070020080000000005100600000040090000057000000000008018000300900005070',
-  '090000004100000860800005010000001030000540007050700000300006000070090002008000000',
-  '007090002300006000080000000005700000000540007000001300009000004800005100100000680',
+const emptyBoard = [
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
-const toBoard = code => {
+// http://www.sudokufans.org.cn/forums/topic/438/
+const hardestBoardCodes = [
+  "016300000008000000490070200000057000000040900050100060081000030000000008900005700", // 3675
+  "000000800002070040000300601600100005009040000000057000007005090300000108080000000", // 7051
+  "061300000400070020080000000005100600000040090000057000000000008018000300900005070", // 7974
+  "090000004100000860800005010000001030000540007050700000300006000070090002008000000", // 2462
+  "007090002300006000080000000005700000000540007000001300009000004800005100100000680", // 3850
+];
+
+const toBoard = (code) => {
   const board = deepCopy(emptyBoard);
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
@@ -360,33 +390,18 @@ const toBoard = code => {
   return board;
 };
 
-analyze(toBoard(hardestBoardCodes[1]));
-// solve(hardBoard);
+// analyze(hardBoard);
 
-// for (const code of hardestBoardCodes) {
-//   analyze(toBoard(code));
-// }
+for (const code of hardestBoardCodes) {
+  analyze(toBoard(code));
+}
 
 /** Features */
 
 // 1. simple solve
 // 2. guess solve
-// 3. analyze the board - unsolvable board; all possible solutions; difficulty score?
-// 4. generate the hardest sodoku?
-
-/** EXPERIMENTS */
-
-// let times = 0;
-
-// while (true) {
-// console.log(++times);
-// if (times === 1000000) return;
-// }
-
-// const func = () => {
-//   console.log(++times);
-//   if (times === 1000000) return;
-//   func();
-// };
-
-// func();
+// 3. steps
+// 4. difficulty level
+// 5. UX and UI
+// 6. all possible solutions
+// 7. generate the hardest sodoku
