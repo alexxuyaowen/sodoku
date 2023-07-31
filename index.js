@@ -54,10 +54,6 @@ const simpleSolve = board => {
 
 const guessSolve = (board, toGuess, history = []) => {
   ++numGuesses;
-  let leastNumOfPossibleValues = 10;
-  let nextGuess;
-  let nextBoard;
-  let guessedIndex;
   const { x, y, vals } = toGuess;
   for (let i = 0; i < vals.length; i++) {
     const guessedBoard = deepCopy(board);
@@ -66,20 +62,14 @@ const guessSolve = (board, toGuess, history = []) => {
     if (isSolved(attemptedResult)) {
       return attemptedResult;
     } else if (attemptedResult) {
-      if (attemptedResult.vals.length < leastNumOfPossibleValues) {
-        leastNumOfPossibleValues = attemptedResult.vals.length;
-        nextGuess = attemptedResult;
-        nextBoard = guessedBoard;
-        guessedIndex = i;
-      }
+      return guessSolve(guessedBoard, attemptedResult, [
+        ...history,
+        { prevBoard: guessedBoard, toGuess: attemptedResult, guessedIndex: i },
+      ]);
+    } else {
+      toGuess.vals.splice(i, 1);
+      return guessSolve(board, toGuess, history);
     }
-  }
-
-  if (nextGuess) {
-    return guessSolve(nextBoard, nextGuess, [
-      ...history,
-      { prevBoard: nextBoard, toGuess: nextGuess, guessedIndex },
-    ]);
   }
 
   history.pop();
@@ -363,9 +353,10 @@ const toBoard = code => {
 };
 
 solve(toBoard(hardestBoardCodes[1]));
+solve(toBoard(hardestBoardCodes[2]));
 
 // for (const code of hardestBoardCodes) {
-//   solve(toBoard(code));
+//   analyze(toBoard(code));
 // }
 
 /** Features */
