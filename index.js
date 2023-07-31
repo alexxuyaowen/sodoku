@@ -374,7 +374,14 @@ analyze(toBoard(hardestBoardCodes[1]));
 // 3. analyze the board - unsolvable board; all possible solutions; difficulty score?
 // 4. generate the hardest sodoku?
 
+/** EXPERIMENTS */
+
 // let times = 0;
+
+// while (true) {
+// console.log(++times);
+// if (times === 1000000) return;
+// }
 
 // const func = () => {
 //   console.log(++times);
