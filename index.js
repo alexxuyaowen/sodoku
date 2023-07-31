@@ -20,40 +20,41 @@ const solve = board => {
 
 const simpleSolve = board => {
   const simpleSolvedBoard = deepCopy(board);
-  let leastNumOfPossibleValues = 10;
   let toGuess;
-  let isSolving = false;
-
-  for (let i = 0; i < 9; i++) {
-    for (let j = 0; j < 9; j++) {
-      if (!simpleSolvedBoard[i][j]) {
-        const possibleValues = [];
-        for (
-          let val = 1;
-          val <= 9 && possibleValues.length < leastNumOfPossibleValues;
-          val++
-        ) {
-          if (isValid(simpleSolvedBoard, { x: i, y: j, val })) {
-            possibleValues.push(val);
+  while (true) {
+    let leastNumOfPossibleValues = 10;
+    let isSolving = false;
+    toGuess = undefined;
+    for (let i = 0; i < 9; i++) {
+      for (let j = 0; j < 9; j++) {
+        if (!simpleSolvedBoard[i][j]) {
+          const possibleValues = [];
+          for (
+            let val = 1;
+            val <= 9 && possibleValues.length < leastNumOfPossibleValues;
+            val++
+          ) {
+            if (isValid(simpleSolvedBoard, { x: i, y: j, val })) {
+              possibleValues.push(val);
+            }
           }
-        }
 
-        if (!possibleValues.length) {
-          return false;
-        } else if (possibleValues.length === 1) {
-          simpleSolvedBoard[i][j] = possibleValues[0];
-          isSolving = true;
-        } else if (possibleValues.length < leastNumOfPossibleValues) {
-          leastNumOfPossibleValues = possibleValues.length;
-          toGuess = { x: i, y: j, vals: possibleValues };
+          if (!possibleValues.length) {
+            return false;
+          } else if (possibleValues.length === 1) {
+            simpleSolvedBoard[i][j] = possibleValues[0];
+            isSolving = true;
+          } else if (possibleValues.length < leastNumOfPossibleValues) {
+            leastNumOfPossibleValues = possibleValues.length;
+            toGuess = { x: i, y: j, vals: possibleValues };
+          }
         }
       }
     }
+    if (!isSolving) break;
   }
 
-  return isSolving
-    ? simpleSolve(simpleSolvedBoard)
-    : { toGuess, simpleSolvedBoard };
+  return { toGuess, simpleSolvedBoard };
 };
 
 const guessSolve = (board, toGuess, history = []) => {
@@ -372,3 +373,13 @@ analyze(toBoard(hardestBoardCodes[1]));
 // 2. guess solve
 // 3. analyze the board - unsolvable board; all possible solutions; difficulty score?
 // 4. generate the hardest sodoku?
+
+// let times = 0;
+
+// const func = () => {
+//   console.log(++times);
+//   if (times === 1000000) return;
+//   func();
+// };
+
+// func();
