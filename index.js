@@ -66,10 +66,9 @@ const guessSolve = (board, toGuess, history = []) => {
         ...history,
         { prevBoard: guessedBoard, toGuess: attemptedResult, guessedIndex: i },
       ]);
-    } else {
-      toGuess.vals.splice(i, 1);
-      return guessSolve(board, toGuess, history);
     }
+    toGuess.vals.splice(i, 1);
+    return guessSolve(board, toGuess, history);
   }
 
   history.pop();
@@ -146,7 +145,7 @@ const analyze = board => {
   try {
     result = solve(board);
   } catch (e) {
-    console.log(result);
+    console.error(e);
   } finally {
     console.log('original board: ', board);
     console.log('result: ', result);
@@ -353,7 +352,7 @@ const toBoard = code => {
 };
 
 solve(toBoard(hardestBoardCodes[1]));
-solve(toBoard(hardestBoardCodes[2]));
+// solve(hardBoard);
 
 // for (const code of hardestBoardCodes) {
 //   analyze(toBoard(code));
