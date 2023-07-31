@@ -70,7 +70,7 @@ const guessSolve = (board, toGuess, history = []) => {
       ]);
     }
 
-    toGuess.vals.shift();
+    vals.shift();
     return guessSolve(board, toGuess, history);
   }
 
@@ -354,7 +354,7 @@ const toBoard = code => {
   return board;
 };
 
-solve(toBoard(hardestBoardCodes[1]));
+analyze(toBoard(hardestBoardCodes[1]));
 // solve(hardBoard);
 
 // for (const code of hardestBoardCodes) {
