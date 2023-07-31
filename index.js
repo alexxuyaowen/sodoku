@@ -54,20 +54,23 @@ const simpleSolve = board => {
 
 const guessSolve = (board, toGuess, history = []) => {
   ++numGuesses;
+
   const { x, y, vals } = toGuess;
-  for (let i = 0; i < vals.length; i++) {
+  if (vals.length) {
     const guessedBoard = deepCopy(board);
-    guessedBoard[x][y] = vals[i];
+    guessedBoard[x][y] = vals[0];
     const attemptedResult = simpleSolve(guessedBoard);
+
     if (isSolved(attemptedResult)) {
       return attemptedResult;
     } else if (attemptedResult) {
       return guessSolve(guessedBoard, attemptedResult, [
         ...history,
-        { prevBoard: guessedBoard, toGuess: attemptedResult, guessedIndex: i },
+        { prevBoard: guessedBoard, toGuess: attemptedResult },
       ]);
     }
-    toGuess.vals.splice(i, 1);
+
+    toGuess.vals.shift();
     return guessSolve(board, toGuess, history);
   }
 
@@ -80,7 +83,7 @@ const guessSolve = (board, toGuess, history = []) => {
   }
 
   if (!latestHistory) return 'unsolvable board';
-  latestHistory.toGuess.vals.splice(latestHistory.guessedIndex, 1);
+  latestHistory.toGuess.vals.shift();
   return guessSolve(latestHistory.prevBoard, latestHistory.toGuess, history);
 };
 
