@@ -25,48 +25,85 @@ const solve = (board) => {
 const simpleSolve = (board, steps) => {
   const simpleSolvedBoard = deepCopy(board);
   const simpleSolvedSteps = deepCopy(steps);
-  while (true) {
-    let leastNumOfPossibleValues = 10;
-    let isSolving = false;
-    let toGuess = undefined;
+  let needGuess = true;
+
+  while (needGuess) {
+    const notes = [];
 
     for (let i = 0; i < 9; i++) {
       for (let j = 0; j < 9; j++) {
+        const box = ((i / 3) | 0) * 3 + ((j / 3) | 0);
         if (!simpleSolvedBoard[i][j]) {
-          const possibleValues = [];
-          for (
-            let val = 1;
-            val <= 9 && possibleValues.length < leastNumOfPossibleValues;
-            val++
-          ) {
+          const possibleValues = new Set();
+          for (let val = 1; val <= 9; val++) {
             if (isValid(simpleSolvedBoard, { x: i, y: j, val })) {
-              possibleValues.push(val);
+              possibleValues.add(val);
             }
           }
 
-          if (!possibleValues.length) {
+          if (!possibleValues.size) {
             return false;
-          } else if (possibleValues.length === 1) {
-            simpleSolvedBoard[i][j] = possibleValues[0];
-            isSolving = true;
+          } else {
+            notes.push({
+              vals: possibleValues,
+              row: i,
+              col: j,
+              box,
+            });
+          }
+        } else {
+          notes.push({
+            row: i,
+            col: j,
+            box,
+          });
+        }
+      }
+    }
+
+    for (let i = 0; i < 9; i++) {
+      const results = [
+        check(notes.filter(({ row }) => row === i)),
+        check(notes.filter(({ col }) => col === i)),
+        check(notes.filter(({ box }) => box === i)),
+      ];
+
+      for (const result of results) {
+        for (const found of result) {
+          const { x, y, val } = found;
+          needGuess = false;
+          if (!simpleSolvedBoard[x][y]) {
+            simpleSolvedBoard[x][y] = val;
             simpleSolvedSteps.push({
               step: simpleSolvedSteps.length + 1,
-              x: i,
-              y: j,
-              val: possibleValues[0],
+              ...found,
             });
-          } else if (possibleValues.length < leastNumOfPossibleValues) {
-            leastNumOfPossibleValues = possibleValues.length;
-            toGuess = { x: i, y: j, vals: possibleValues };
           }
         }
       }
     }
 
-    if (!isSolving) {
+    if (needGuess) {
       steps.push(...simpleSolvedSteps);
-      return { toGuess, simpleSolvedBoard };
+      if (!isSolved(simpleSolvedBoard)) {
+        for (let i = 2; i < 9; i++) {
+          const toGuess = notes.find((note) => note.vals?.size === i);
+          if (toGuess) {
+            return {
+              toGuess: {
+                x: toGuess.row,
+                y: toGuess.col,
+                vals: [...toGuess.vals],
+              },
+              simpleSolvedBoard,
+            };
+          }
+        }
+      }
+      return { simpleSolvedBoard };
     }
+
+    needGuess = true;
   }
 };
 
@@ -177,48 +214,58 @@ const deepCopy = (arr) =>
 
 const isSolved = (board) => Array.isArray(board) && !board.flat().includes(0);
 
-/** TESTS AREA */
+const check = (arr) => {
+  const valuesCount = new Array(10).fill(0);
+  const result = [];
 
-const analyze = (board) => {
-  const analysis = [];
-  let result = {};
-  const startTime = Date.now();
-
-  for (let i = 0; i < 9; i++) {
-    for (let j = 0; j < 9; j++) {
-      if (!board[i][j]) {
-        analysis.push(
-          [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((val) =>
-            isValid(board, { x: i, y: j, val })
-          )
-        );
+  for (const obj of arr) {
+    const { row: x, col: y, vals } = obj;
+    if (vals) {
+      // uniqueness check
+      if (vals.size === 1) {
+        const val = vals.values().next().value;
+        result.push({ x, y, val });
+        valuesCount[val] = -10;
       } else {
-        analysis.push(board[i][j]);
+        vals.forEach((val) => valuesCount[val]++);
       }
     }
   }
+
+  for (let val = 1; val <= 9; val++) {
+    // exhaustiveness check
+    if (valuesCount[val] === 1) {
+      const { row: x, col: y } = arr.find((obj) => obj.vals?.has(val));
+      result.push({ x, y, val, isExhaustive: true });
+    }
+  }
+
+  return result;
+};
+
+const getTheOne = (set) => set.values().next().value;
+
+/** TESTS AREA */
+
+const analyze = (board) => {
+  let result = {};
+  const startTime = Date.now();
 
   try {
     result = solve(board);
   } catch (e) {
     console.error(e);
   } finally {
-    console.log("original board:", board);
-    console.log("steps:", result.steps);
+    console.log(`\ntime spent: ${Date.now() - startTime}ms`);
     console.log("result:", result.board);
-    console.log("possible values for each cell:", analysis);
+    console.log("steps:", result.steps);
+    console.log("original board:", board);
     console.log(
-      "number of empty cells:",
-      analysis.reduce((count, cell) => count + Array.isArray(cell), 0)
+      "uncertainty level: ",
+      result.steps?.reduce((count, step) => count + !!step.needGuess, 0)
     );
-    console.log(
-      `variations: ${analysis.reduce((total, x) => total * (x.length || 1), 1)}`
-    );
-    console.log(`time spent: ${Date.now() - startTime}ms`);
   }
 };
-
-// difficulty level equals number of needed guesses
 
 // board[2][4] should not be 8
 const unsolvableBoard = [
@@ -323,6 +370,32 @@ const mediumBoard = [
   [6, 0, 0, 0, 0, 0, 8, 0, 5],
 ];
 
+// 8-0 should be 6
+const exhaustiveBoard = [
+  [0, 0, 6, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 6, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [5, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 6, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+];
+
+// 8-0 should be 6
+const exhaustiveBoard2 = [
+  [0, 0, 6, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [3, 0, 4, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 6, 0],
+  [2, 0, 5, 0, 0, 0, 0, 0, 0],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 6, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+];
+
 const easyBoard = [
   [5, 3, 0, 0, 7, 0, 0, 0, 0],
   [6, 0, 0, 1, 9, 5, 0, 0, 0],
@@ -390,7 +463,7 @@ const toBoard = (code) => {
   return board;
 };
 
-// analyze(hardBoard);
+// analyze(exhaustiveBoard2);
 
 for (const code of hardestBoardCodes) {
   analyze(toBoard(code));
