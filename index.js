@@ -8,9 +8,11 @@ const solve = (board) => {
 
   const { toGuess, simpleSolvedBoard } = simpleSolve(board, steps);
 
-  if (isSolved(simpleSolvedBoard)) {
-    return { board: simpleSolvedBoard, steps };
-  } else if (toGuess) {
+  if (!simpleSolvedBoard) {
+    return { board: "unsolvable board" };
+  }
+
+  if (toGuess) {
     return guessSolve(
       simpleSolvedBoard,
       toGuess,
@@ -19,7 +21,7 @@ const solve = (board) => {
     );
   }
 
-  return { board: "unsolvable board" };
+  return { board: simpleSolvedBoard, steps };
 };
 
 const simpleSolve = (board, steps) => {
@@ -243,8 +245,6 @@ const check = (arr) => {
   return result;
 };
 
-const getTheOne = (set) => set.values().next().value;
-
 /** TESTS AREA */
 
 const analyze = (board) => {
@@ -463,18 +463,21 @@ const toBoard = (code) => {
   return board;
 };
 
-analyze(exhaustiveBoard2);
+// analyze(exhaustiveBoard2);
 
-// for (const code of hardestBoardCodes) {
-//   analyze(toBoard(code));
-// }
+for (const code of hardestBoardCodes) {
+  analyze(toBoard(code));
+}
 
 /** Features */
 
 // 1. simple solve
 // 2. guess solve
-// 3. steps
-// 4. uncertainty level
-// 5. UX and UI?
-// 6. all possible solutions?
-// 7. generate the hardest sudoku?
+// 3. exhaustive solve
+// 4. exhaustive solve plus
+// 5. steps
+// 6. uncertainty level
+// 7. writing tests
+// 8. UX and UI?
+// 9. all possible solutions?
+// 10. generate the hardest sudoku?
