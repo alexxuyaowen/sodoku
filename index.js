@@ -385,15 +385,15 @@ const exhaustiveBoard = [
 
 // 8-0 should be 6
 const exhaustiveBoard2 = [
-  [0, 0, 6, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [3, 0, 4, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 6, 0],
-  [2, 0, 5, 0, 0, 0, 0, 0, 0],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [4, 0, 1, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 6, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [3, 0, 2, 0, 0, 0, 0, 0, 0],
+  [2, 0, 3, 0, 0, 0, 0, 0, 0],
+  [1, 0, 4, 0, 0, 0, 0, 0, 0],
+  [0, 0, 5, 0, 0, 0, 0, 0, 0],
 ];
 
 const easyBoard = [
@@ -463,18 +463,18 @@ const toBoard = (code) => {
   return board;
 };
 
-// analyze(exhaustiveBoard2);
+analyze(exhaustiveBoard2);
 
-for (const code of hardestBoardCodes) {
-  analyze(toBoard(code));
-}
+// for (const code of hardestBoardCodes) {
+//   analyze(toBoard(code));
+// }
 
 /** Features */
 
 // 1. simple solve
 // 2. guess solve
 // 3. steps
-// 4. difficulty level
-// 5. UX and UI
-// 6. all possible solutions
-// 7. generate the hardest sodoku
+// 4. uncertainty level
+// 5. UX and UI?
+// 6. all possible solutions?
+// 7. generate the hardest sudoku?
