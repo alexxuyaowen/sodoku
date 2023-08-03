@@ -25,44 +25,17 @@ const solve = (board) => {
 };
 
 const simpleSolve = (board, steps) => {
-  const simpleSolvedBoard = deepCopy(board);
-  const simpleSolvedSteps = deepCopy(steps);
-  let needGuess = true;
+  const notes = constructNotes(board);
+  if (!notes) {
+    return false;
+  }
 
-  while (needGuess) {
-    const notes = [];
-
-    for (let i = 0; i < 9; i++) {
-      for (let j = 0; j < 9; j++) {
-        const box = ((i / 3) | 0) * 3 + ((j / 3) | 0);
-        if (!simpleSolvedBoard[i][j]) {
-          const possibleValues = new Set();
-          for (let val = 1; val <= 9; val++) {
-            if (isValid(simpleSolvedBoard, { x: i, y: j, val })) {
-              possibleValues.add(val);
-            }
-          }
-
-          if (!possibleValues.size) {
-            return false;
-          } else {
-            notes.push({
-              vals: possibleValues,
-              row: i,
-              col: j,
-              box,
-            });
-          }
-        } else {
-          notes.push({
-            row: i,
-            col: j,
-            box,
-          });
-        }
-      }
-    }
-
+  const [simpleSolvedBoard, simpleSolvedSteps] = [
+    deepCopy(board),
+    deepCopy(steps),
+  ];
+  while (true) {
+    let needGuess = true;
     for (let i = 0; i < 9; i++) {
       const results = [
         check(notes.filter(({ row }) => row === i)),
@@ -73,8 +46,31 @@ const simpleSolve = (board, steps) => {
       for (const result of results) {
         for (const found of result) {
           const { x, y, val } = found;
-          needGuess = false;
-          if (!simpleSolvedBoard[x][y]) {
+          if (simpleSolvedBoard[x][y] === 0) {
+            if (!isValid(simpleSolvedBoard, { x, y, val })) {
+              return false;
+            }
+
+            notes.splice(
+              notes.findIndex(({ row, col }) => row === x && col === y),
+              1
+            );
+
+            notes.forEach(({ row, col, box, vals }) => {
+              if (
+                vals &&
+                (row === x ||
+                  col === y ||
+                  box === ((x / 3) | 0) * 3 + ((y / 3) | 0))
+              ) {
+                vals.delete(val);
+                if (vals.size === 0) {
+                  return false;
+                }
+              }
+            });
+
+            needGuess = false;
             simpleSolvedBoard[x][y] = val;
             simpleSolvedSteps.push({
               step: simpleSolvedSteps.length + 1,
@@ -102,11 +98,59 @@ const simpleSolve = (board, steps) => {
           }
         }
       }
+
       return { simpleSolvedBoard };
     }
-
-    needGuess = true;
   }
+};
+
+const constructNotes = (board) => {
+  const notes = [];
+  for (let i = 0; i < 9; i++) {
+    for (let j = 0; j < 9; j++) {
+      const box = ((i / 3) | 0) * 3 + ((j / 3) | 0);
+      if (!board[i][j]) {
+        const possibleValues = new Set();
+        for (let val = 1; val <= 9; val++) {
+          if (isValid(board, { x: i, y: j, val })) {
+            possibleValues.add(val);
+          }
+        }
+
+        if (!possibleValues.size) {
+          return false;
+        }
+
+        notes.push({
+          vals: possibleValues,
+          row: i,
+          col: j,
+          box,
+        });
+      }
+    }
+  }
+  return notes;
+};
+
+const check = (arr) => {
+  const valuesCount = new Array(10).fill(0);
+  const result = [];
+
+  for (const obj of arr) {
+    const { vals } = obj;
+    vals?.forEach((val) => valuesCount[val]++);
+  }
+
+  // exhaustive check
+  for (let val = 1; val <= 9; val++) {
+    if (valuesCount[val] === 1) {
+      const { row: x, col: y } = arr.find(({ vals }) => vals.has(val));
+      result.push({ x, y, val });
+    }
+  }
+
+  return result;
 };
 
 const guessSolve = (board, toGuess, history = [], steps) => {
@@ -214,36 +258,10 @@ const isBoardValid = (board) => {
 const deepCopy = (arr) =>
   arr.map((e) => (Array.isArray(e) ? [...e] : { ...e }));
 
-const isSolved = (board) => Array.isArray(board) && !board.flat().includes(0);
+const isSolved = (board) =>
+  Array.isArray(board) && !board.flat().includes(0) && isBoardValid(board);
 
-const check = (arr) => {
-  const valuesCount = new Array(10).fill(0);
-  const result = [];
-
-  for (const obj of arr) {
-    const { row: x, col: y, vals } = obj;
-    if (vals) {
-      // uniqueness check
-      if (vals.size === 1) {
-        const val = vals.values().next().value;
-        result.push({ x, y, val });
-        valuesCount[val] = -10;
-      } else {
-        vals.forEach((val) => valuesCount[val]++);
-      }
-    }
-  }
-
-  for (let val = 1; val <= 9; val++) {
-    // exhaustiveness check
-    if (valuesCount[val] === 1) {
-      const { row: x, col: y } = arr.find((obj) => obj.vals?.has(val));
-      result.push({ x, y, val, isExhaustive: true });
-    }
-  }
-
-  return result;
-};
+const getVal = (set) => set.values().next().value;
 
 /** TESTS AREA */
 
@@ -357,6 +375,18 @@ const hardBoard = [
   [1, 0, 0, 3, 0, 0, 0, 0, 0],
 ];
 
+const hardBoard2 = [
+  [0, 5, 0, 3, 7, 0, 1, 9, 0],
+  [0, 0, 6, 0, 0, 0, 0, 5, 0],
+  [0, 0, 0, 8, 0, 0, 0, 0, 0],
+  [0, 6, 0, 5, 1, 0, 3, 0, 0],
+  [4, 0, 0, 0, 0, 0, 0, 0, 2],
+  [0, 0, 0, 0, 0, 9, 0, 0, 0],
+  [0, 0, 2, 7, 9, 0, 0, 0, 3],
+  [0, 0, 0, 0, 0, 6, 9, 0, 0],
+  [0, 7, 0, 0, 0, 8, 0, 0, 0],
+];
+
 // 1
 const mediumBoard = [
   [0, 5, 0, 0, 6, 4, 7, 3, 2],
@@ -383,8 +413,19 @@ const exhaustiveBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
-// 8-0 should be 6
 const exhaustiveBoard2 = [
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [4, 0, 5, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 6, 0, 0, 0, 0],
+  [3, 0, 7, 0, 0, 0, 0, 0, 0],
+  [2, 0, 8, 0, 0, 0, 0, 0, 0],
+  [1, 0, 9, 0, 0, 0, 0, 0, 0],
+  [0, 0, 4, 0, 0, 0, 0, 0, 0],
+];
+
+const invalidExhaustiveBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -463,7 +504,7 @@ const toBoard = (code) => {
   return board;
 };
 
-// analyze(exhaustiveBoard2);
+// analyze(mediumBoard);
 
 for (const code of hardestBoardCodes) {
   analyze(toBoard(code));
