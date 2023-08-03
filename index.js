@@ -6,31 +6,31 @@ const solve = (board) => {
 
   const steps = [];
 
-  const { toGuess, simpleSolvedBoard } = simpleSolve(board, steps);
+  const { toGuess, logicSolvedBoard } = logicSolve(board, steps);
 
-  if (!simpleSolvedBoard) {
+  if (!logicSolvedBoard) {
     return { board: "unsolvable board" };
   }
 
   if (toGuess) {
     return guessSolve(
-      simpleSolvedBoard,
+      logicSolvedBoard,
       toGuess,
-      [{ prevBoard: simpleSolvedBoard, toGuess }],
+      [{ prevBoard: logicSolvedBoard, toGuess }],
       steps
     );
   }
 
-  return { board: simpleSolvedBoard, steps };
+  return { board: logicSolvedBoard, steps };
 };
 
-const simpleSolve = (board, steps) => {
+const logicSolve = (board, steps) => {
   const notes = constructNotes(board);
   if (!notes) {
     return false;
   }
 
-  const [simpleSolvedBoard, simpleSolvedSteps] = [
+  const [logicSolvedBoard, logicSolvedSteps] = [
     deepCopy(board),
     deepCopy(steps),
   ];
@@ -46,8 +46,8 @@ const simpleSolve = (board, steps) => {
       for (const result of results) {
         for (const found of result) {
           const { x, y, val } = found;
-          if (simpleSolvedBoard[x][y] === 0) {
-            if (!isValid(simpleSolvedBoard, { x, y, val })) {
+          if (logicSolvedBoard[x][y] === 0) {
+            if (!isValid(logicSolvedBoard, { x, y, val })) {
               return false;
             }
 
@@ -71,9 +71,9 @@ const simpleSolve = (board, steps) => {
             });
 
             needGuess = false;
-            simpleSolvedBoard[x][y] = val;
-            simpleSolvedSteps.push({
-              step: simpleSolvedSteps.length + 1,
+            logicSolvedBoard[x][y] = val;
+            logicSolvedSteps.push({
+              step: logicSolvedSteps.length + 1,
               ...found,
             });
           }
@@ -82,9 +82,9 @@ const simpleSolve = (board, steps) => {
     }
 
     if (needGuess) {
-      steps.push(...simpleSolvedSteps);
-      if (!isSolved(simpleSolvedBoard)) {
-        for (let i = 2; i < 9; i++) {
+      steps.push(...logicSolvedSteps);
+      if (!isSolved(logicSolvedBoard)) {
+        for (let i = 2; i <= 9; i++) {
           const toGuess = notes.find((note) => note.vals?.size === i);
           if (toGuess) {
             return {
@@ -93,13 +93,15 @@ const simpleSolve = (board, steps) => {
                 y: toGuess.col,
                 vals: [...toGuess.vals],
               },
-              simpleSolvedBoard,
+              logicSolvedBoard,
             };
           }
         }
+
+        return false;
       }
 
-      return { simpleSolvedBoard };
+      return { logicSolvedBoard };
     }
   }
 };
@@ -137,8 +139,7 @@ const check = (arr) => {
   const valuesCount = new Array(10).fill(0);
   const result = [];
 
-  for (const obj of arr) {
-    const { vals } = obj;
+  for (const { vals } of arr) {
     vals?.forEach((val) => valuesCount[val]++);
   }
 
@@ -160,13 +161,13 @@ const guessSolve = (board, toGuess, history = [], steps) => {
       const guessedBoard = deepCopy(board);
       guessedBoard[x][y] = vals[0];
 
-      const simpleSolvedSteps = [];
-      const { toGuess: nextGuess, simpleSolvedBoard } = simpleSolve(
+      const logicSolvedSteps = [];
+      const { toGuess: nextGuess, logicSolvedBoard } = logicSolve(
         guessedBoard,
-        simpleSolvedSteps
+        logicSolvedSteps
       );
 
-      if (isSolved(simpleSolvedBoard)) {
+      if (isSolved(logicSolvedBoard)) {
         for (const h of history) {
           steps.push({
             step: steps.length + 1,
@@ -175,7 +176,7 @@ const guessSolve = (board, toGuess, history = [], steps) => {
             val: h.toGuess.vals[0],
             needGuess: true,
           });
-          const simpleSteps = h.simpleSolvedSteps?.map((step) => ({
+          const simpleSteps = h.logicSolvedSteps?.map((step) => ({
             ...step,
             step: step.step + steps.length,
           }));
@@ -184,7 +185,7 @@ const guessSolve = (board, toGuess, history = [], steps) => {
           }
         }
 
-        const simpleSteps = simpleSolvedSteps?.map((step) => ({
+        const simpleSteps = logicSolvedSteps?.map((step) => ({
           ...step,
           step: step.step + steps.length,
         }));
@@ -193,16 +194,16 @@ const guessSolve = (board, toGuess, history = [], steps) => {
         }
 
         return {
-          board: simpleSolvedBoard,
+          board: logicSolvedBoard,
           steps,
         };
       } else if (nextGuess) {
-        board = simpleSolvedBoard;
+        board = logicSolvedBoard;
         toGuess = nextGuess;
         history.push({
-          prevBoard: simpleSolvedBoard,
+          prevBoard: logicSolvedBoard,
           toGuess: nextGuess,
-          simpleSolvedSteps,
+          logicSolvedSteps,
         });
       } else {
         vals.shift();
@@ -425,7 +426,7 @@ const exhaustiveBoard2 = [
   [0, 0, 4, 0, 0, 0, 0, 0, 0],
 ];
 
-const invalidExhaustiveBoard = [
+const unsolvableExhaustiveBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -504,21 +505,19 @@ const toBoard = (code) => {
   return board;
 };
 
-// analyze(mediumBoard);
+analyze(unsolvableExhaustiveBoard);
 
-for (const code of hardestBoardCodes) {
-  analyze(toBoard(code));
-}
+// for (const code of hardestBoardCodes) {
+//   analyze(toBoard(code));
+// }
 
 /** Features */
 
-// 1. simple solve
+// 1. logic solve (simple solve/exhaustive solve)
 // 2. guess solve
-// 3. exhaustive solve
-// 4. exhaustive solve plus
-// 5. steps
-// 6. uncertainty level
-// 7. writing tests
-// 8. UX and UI?
-// 9. all possible solutions?
-// 10. generate the hardest sudoku?
+// 3. steps
+// 4. uncertainty level
+// 5. tests
+// 6. UX and UI?
+// 7. all possible solutions?
+// 8. generate the hardest sudoku?
