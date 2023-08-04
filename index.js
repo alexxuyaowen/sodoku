@@ -1,4 +1,7 @@
 /* eslint-disable */
+
+const GUESS_LIMIT = 2023;
+
 const solve = (board) => {
   if (!isBoardValid(board)) {
     return "invalid board";
@@ -9,7 +12,7 @@ const solve = (board) => {
   const { toGuess, logicSolvedBoard } = logicSolve(board, steps);
 
   if (!logicSolvedBoard) {
-    return { board: "unsolvable board" };
+    return "unsolvable board";
   }
 
   if (toGuess) {
@@ -37,10 +40,20 @@ const logicSolve = (board, steps) => {
   while (true) {
     let needGuess = true;
     for (let i = 0; i < 9; i++) {
+      const currBox = notes.filter(({ box }) => box === i);
+      const isModified = boxCheck(currBox, notes, i);
+
+      if (isModified) {
+        if (isModified === -1) {
+          return false;
+        }
+        needGuess = false;
+      }
+
       const results = [
         check(notes.filter(({ row }) => row === i)),
         check(notes.filter(({ col }) => col === i)),
-        check(notes.filter(({ box }) => box === i)),
+        check(currBox),
       ];
 
       for (const result of results) {
@@ -57,12 +70,7 @@ const logicSolve = (board, steps) => {
             );
 
             notes.forEach(({ row, col, box, vals }) => {
-              if (
-                vals &&
-                (row === x ||
-                  col === y ||
-                  box === ((x / 3) | 0) * 3 + ((y / 3) | 0))
-              ) {
+              if (vals && (row === x || col === y || box === getBox(x, y))) {
                 vals.delete(val);
                 if (vals.size === 0) {
                   return false;
@@ -110,7 +118,7 @@ const constructNotes = (board) => {
   const notes = [];
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
-      const box = ((i / 3) | 0) * 3 + ((j / 3) | 0);
+      const box = getBox(i, j);
       if (!board[i][j]) {
         const possibleValues = new Set();
         for (let val = 1; val <= 9; val++) {
@@ -143,7 +151,6 @@ const check = (arr) => {
     vals?.forEach((val) => valuesCount[val]++);
   }
 
-  // exhaustive check
   for (let val = 1; val <= 9; val++) {
     if (valuesCount[val] === 1) {
       const { row: x, col: y } = arr.find(({ vals }) => vals.has(val));
@@ -154,8 +161,78 @@ const check = (arr) => {
   return result;
 };
 
+const boxCheck = (arr, notes, i) => {
+  let isModified = false;
+  const rowMap = new Map();
+  const colMap = new Map();
+
+  for (const { row, col, vals } of arr) {
+    if (!rowMap.has(row)) {
+      rowMap.set(row, vals);
+    } else {
+      rowMap.set(row, new Set([...vals, ...rowMap.get(row)]));
+    }
+
+    if (!colMap.has(col)) {
+      colMap.set(col, vals);
+    } else {
+      colMap.set(col, new Set([...vals, ...colMap.get(col)]));
+    }
+  }
+
+  const rowCount = new Array(10).fill(0);
+
+  for (const vals of [...rowMap.values()]) {
+    vals?.forEach((val) => rowCount[val]++);
+  }
+
+  for (let val = 1; val <= 9; val++) {
+    if (rowCount[val] === 1) {
+      for (const key of [...rowMap.keys()]) {
+        if (rowMap.get(key).has(val)) {
+          for (const { row, box, vals } of notes) {
+            if (vals?.has(val) && box !== i && row === key) {
+              vals.delete(val);
+              if (vals.size === 0) {
+                return -1;
+              }
+              isModified = true;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  const colCount = new Array(10).fill(0);
+
+  for (const vals of [...colMap.values()]) {
+    vals?.forEach((val) => colCount[val]++);
+  }
+
+  for (let val = 1; val <= 9; val++) {
+    if (colCount[val] === 1) {
+      for (const key of [...colMap.keys()]) {
+        if (colMap.get(key).has(val)) {
+          for (const { col, box, vals } of notes) {
+            if (vals?.has(val) && box !== i && col === key) {
+              vals.delete(val);
+              if (vals.size === 0) {
+                return -1;
+              }
+              isModified = true;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return isModified;
+};
+
 const guessSolve = (board, toGuess, history = [], steps) => {
-  while (true) {
+  for (let numGuesses = 0; numGuesses < GUESS_LIMIT; numGuesses++) {
     const { x, y, vals } = toGuess;
     if (vals.length) {
       const guessedBoard = deepCopy(board);
@@ -217,12 +294,14 @@ const guessSolve = (board, toGuess, history = [], steps) => {
         latestHistory = history.at(-1);
       }
 
-      if (!latestHistory) return { board: "unsolvable board" };
+      if (!latestHistory) return "unsolvable board";
       latestHistory.toGuess.vals.shift();
       board = latestHistory.prevBoard;
       toGuess = latestHistory.toGuess;
     }
   }
+
+  return "unsolvable board (maximum number of guesses reached)";
 };
 
 const isValid = (board, { x, y, val }) => {
@@ -262,31 +341,34 @@ const deepCopy = (arr) =>
 const isSolved = (board) =>
   Array.isArray(board) && !board.flat().includes(0) && isBoardValid(board);
 
-const getVal = (set) => set.values().next().value;
+const getVal = (vals) => {
+  const [val] = vals;
+  return val;
+};
+
+const getBox = (row, col) => ((row / 3) | 0) * 3 + ((col / 3) | 0);
 
 /** TESTS AREA */
 
 const analyze = (board) => {
-  let result = {};
   const startTime = Date.now();
+  const result = solve(board);
+  console.log(`\ntime spent: ${Date.now() - startTime}ms`);
 
-  try {
-    result = solve(board);
-  } catch (e) {
-    console.error(e);
-  } finally {
-    console.log(`\ntime spent: ${Date.now() - startTime}ms`);
-    console.log("result:", result.board);
-    console.log("steps:", result.steps);
+  if (result?.board) {
+    const { steps } = result;
+    console.log("solved board:", result.board);
+    console.log("steps:", steps);
     console.log("original board:", board);
     console.log(
-      "uncertainty level: ",
-      result.steps?.reduce((count, step) => count + !!step.needGuess, 0)
+      "number of guesses: ",
+      steps?.reduce((count, step) => count + !!step.needGuess, 0)
     );
+  } else {
+    console.error("error:", result);
   }
 };
 
-// board[2][4] should not be 8
 const unsolvableBoard = [
   [0, 8, 0, 1, 0, 0, 0, 2, 0],
   [0, 0, 0, 9, 0, 0, 0, 5, 0],
@@ -311,7 +393,18 @@ const unsolvableBoard2 = [
   [0, 0, 0, 0, 4, 0, 0, 0, 1],
 ];
 
-// 3309
+const unsolvableBoard3 = [
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [4, 0, 1, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 6, 0, 0, 0, 0],
+  [3, 0, 2, 0, 0, 0, 0, 0, 0],
+  [2, 0, 3, 0, 0, 0, 0, 0, 0],
+  [1, 0, 4, 0, 0, 0, 0, 0, 0],
+  [0, 0, 5, 0, 0, 0, 0, 0, 0],
+];
+
 const hardestBoard = [
   [8, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 3, 6, 0, 0, 0, 0, 0],
@@ -324,7 +417,6 @@ const hardestBoard = [
   [0, 9, 0, 0, 0, 0, 4, 0, 0],
 ];
 
-// 120
 const evenHarderBoard = [
   [0, 8, 6, 9, 0, 0, 1, 7, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -337,7 +429,6 @@ const evenHarderBoard = [
   [0, 6, 1, 0, 0, 7, 8, 2, 0],
 ];
 
-// 230
 const evenHarderBoard2 = [
   [0, 8, 6, 9, 0, 0, 1, 7, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -350,7 +441,6 @@ const evenHarderBoard2 = [
   [0, 6, 1, 0, 0, 7, 8, 2, 0],
 ];
 
-// 41
 const harderBoard = [
   [8, 0, 0, 0, 0, 5, 2, 0, 0],
   [0, 0, 0, 0, 6, 0, 0, 3, 0],
@@ -363,7 +453,6 @@ const harderBoard = [
   [0, 0, 6, 7, 3, 0, 0, 2, 0],
 ];
 
-// 8
 const hardBoard = [
   [7, 0, 0, 0, 0, 4, 0, 2, 0],
   [0, 9, 0, 0, 0, 0, 3, 0, 0],
@@ -388,7 +477,18 @@ const hardBoard2 = [
   [0, 7, 0, 0, 0, 8, 0, 0, 0],
 ];
 
-// 1
+const hardBoard3 = [
+  [0, 8, 0, 0, 0, 0, 2, 0, 9],
+  [0, 0, 0, 0, 0, 2, 0, 8, 0],
+  [0, 0, 0, 1, 0, 0, 0, 3, 0],
+  [4, 1, 0, 0, 0, 8, 3, 0, 0],
+  [0, 0, 0, 0, 0, 4, 0, 0, 6],
+  [0, 7, 0, 0, 5, 0, 0, 1, 8],
+  [0, 0, 8, 0, 0, 0, 0, 5, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 3, 5, 6, 4, 9, 0, 0, 0],
+];
+
 const mediumBoard = [
   [0, 5, 0, 0, 6, 4, 7, 3, 2],
   [0, 7, 0, 5, 0, 0, 4, 0, 8],
@@ -401,7 +501,6 @@ const mediumBoard = [
   [6, 0, 0, 0, 0, 0, 8, 0, 5],
 ];
 
-// 8-0 should be 6
 const exhaustiveBoard = [
   [0, 0, 6, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -424,18 +523,6 @@ const exhaustiveBoard2 = [
   [2, 0, 8, 0, 0, 0, 0, 0, 0],
   [1, 0, 9, 0, 0, 0, 0, 0, 0],
   [0, 0, 4, 0, 0, 0, 0, 0, 0],
-];
-
-const unsolvableExhaustiveBoard = [
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [4, 0, 1, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 6, 0, 0, 0, 0],
-  [3, 0, 2, 0, 0, 0, 0, 0, 0],
-  [2, 0, 3, 0, 0, 0, 0, 0, 0],
-  [1, 0, 4, 0, 0, 0, 0, 0, 0],
-  [0, 0, 5, 0, 0, 0, 0, 0, 0],
 ];
 
 const easyBoard = [
@@ -488,11 +575,11 @@ const emptyBoard = [
 
 // http://www.sudokufans.org.cn/forums/topic/438/
 const hardestBoardCodes = [
-  "016300000008000000490070200000057000000040900050100060081000030000000008900005700", // 3675
-  "000000800002070040000300601600100005009040000000057000007005090300000108080000000", // 7051
-  "061300000400070020080000000005100600000040090000057000000000008018000300900005070", // 7974
-  "090000004100000860800005010000001030000540007050700000300006000070090002008000000", // 2462
-  "007090002300006000080000000005700000000540007000001300009000004800005100100000680", // 3850
+  "016300000008000000490070200000057000000040900050100060081000030000000008900005700",
+  "000000800002070040000300601600100005009040000000057000007005090300000108080000000",
+  "061300000400070020080000000005100600000040090000057000000000008018000300900005070",
+  "090000004100000860800005010000001030000540007050700000300006000070090002008000000",
+  "007090002300006000080000000005700000000540007000001300009000004800005100100000680",
 ];
 
 const toBoard = (code) => {
@@ -505,11 +592,12 @@ const toBoard = (code) => {
   return board;
 };
 
-analyze(unsolvableExhaustiveBoard);
+// analyze(exhaustiveBoard2);
+// analyze(unsolvableBoard3);
 
-// for (const code of hardestBoardCodes) {
-//   analyze(toBoard(code));
-// }
+for (const code of hardestBoardCodes) {
+  analyze(toBoard(code));
+}
 
 /** Features */
 
