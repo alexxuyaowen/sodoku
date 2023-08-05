@@ -1,8 +1,8 @@
-/* eslint-disable */
-
 const GUESS_LIMIT = 2023;
 
-const solve = (board) => {
+export const solve = (board_UI) => {
+  const board = board_UI.map((row) => row.map((val) => +val));
+
   if (!isBoardValid(board)) {
     return "invalid board";
   }
@@ -147,7 +147,12 @@ const check = (arr) => {
   const valuesCount = new Array(10).fill(0);
   const result = [];
 
-  for (const { vals } of arr) {
+  for (const { row: x, col: y, vals } of arr) {
+    if (vals.size === 1) {
+      const val = getVal(vals);
+      result.push({ x, y, val });
+      valuesCount[val] = -9;
+    }
     vals?.forEach((val) => valuesCount[val]++);
   }
 
@@ -163,16 +168,14 @@ const check = (arr) => {
 
 const boxCheck = (arr, notes, i) => {
   let isModified = false;
-  const rowMap = new Map();
-  const colMap = new Map();
 
+  const [rowMap, colMap] = [new Map(), new Map()];
   for (const { row, col, vals } of arr) {
     if (!rowMap.has(row)) {
       rowMap.set(row, vals);
     } else {
       rowMap.set(row, new Set([...vals, ...rowMap.get(row)]));
     }
-
     if (!colMap.has(col)) {
       colMap.set(col, vals);
     } else {
@@ -180,15 +183,16 @@ const boxCheck = (arr, notes, i) => {
     }
   }
 
-  const rowCount = new Array(10).fill(0);
-
-  for (const vals of [...rowMap.values()]) {
+  const [rowCount, colCount] = [new Array(10).fill(0), new Array(10).fill(0)];
+  for (const vals of rowMap.values()) {
     vals?.forEach((val) => rowCount[val]++);
   }
-
+  for (const vals of colMap.values()) {
+    vals?.forEach((val) => colCount[val]++);
+  }
   for (let val = 1; val <= 9; val++) {
     if (rowCount[val] === 1) {
-      for (const key of [...rowMap.keys()]) {
+      for (const key of rowMap.keys()) {
         if (rowMap.get(key).has(val)) {
           for (const { row, box, vals } of notes) {
             if (vals?.has(val) && box !== i && row === key) {
@@ -202,17 +206,8 @@ const boxCheck = (arr, notes, i) => {
         }
       }
     }
-  }
-
-  const colCount = new Array(10).fill(0);
-
-  for (const vals of [...colMap.values()]) {
-    vals?.forEach((val) => colCount[val]++);
-  }
-
-  for (let val = 1; val <= 9; val++) {
     if (colCount[val] === 1) {
-      for (const key of [...colMap.keys()]) {
+      for (const key of colMap.keys()) {
         if (colMap.get(key).has(val)) {
           for (const { col, box, vals } of notes) {
             if (vals?.has(val) && box !== i && col === key) {
@@ -347,265 +342,3 @@ const getVal = (vals) => {
 };
 
 const getBox = (row, col) => ((row / 3) | 0) * 3 + ((col / 3) | 0);
-
-/** TESTS AREA */
-
-const analyze = (board) => {
-  const startTime = Date.now();
-  const result = solve(board);
-  console.log(`\ntime spent: ${Date.now() - startTime}ms`);
-
-  if (result?.board) {
-    const { steps } = result;
-    console.log("solved board:", result.board);
-    console.log("steps:", steps);
-    console.log("original board:", board);
-    console.log(
-      "number of guesses: ",
-      steps?.reduce((count, step) => count + !!step.needGuess, 0)
-    );
-  } else {
-    console.error("error:", result);
-  }
-};
-
-const unsolvableBoard = [
-  [0, 8, 0, 1, 0, 0, 0, 2, 0],
-  [0, 0, 0, 9, 0, 0, 0, 5, 0],
-  [9, 7, 2, 0, 8, 0, 0, 6, 0],
-  [4, 0, 0, 0, 2, 6, 0, 0, 0],
-  [0, 0, 0, 0, 5, 0, 7, 0, 0],
-  [8, 0, 1, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 6, 9, 5, 0, 0, 0],
-  [0, 2, 5, 0, 0, 0, 0, 0, 9],
-  [0, 0, 0, 0, 4, 0, 0, 0, 1],
-];
-
-const unsolvableBoard2 = [
-  [0, 8, 0, 1, 7, 0, 0, 2, 0],
-  [0, 0, 0, 9, 0, 0, 0, 5, 0],
-  [9, 7, 2, 0, 3, 0, 0, 6, 0],
-  [4, 0, 0, 0, 2, 6, 0, 0, 0],
-  [0, 0, 0, 0, 5, 0, 7, 0, 0],
-  [8, 0, 1, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 6, 9, 5, 0, 0, 0],
-  [0, 2, 5, 0, 0, 0, 0, 0, 9],
-  [0, 0, 0, 0, 4, 0, 0, 0, 1],
-];
-
-const unsolvableBoard3 = [
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [4, 0, 1, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 6, 0, 0, 0, 0],
-  [3, 0, 2, 0, 0, 0, 0, 0, 0],
-  [2, 0, 3, 0, 0, 0, 0, 0, 0],
-  [1, 0, 4, 0, 0, 0, 0, 0, 0],
-  [0, 0, 5, 0, 0, 0, 0, 0, 0],
-];
-
-const hardestBoard = [
-  [8, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 3, 6, 0, 0, 0, 0, 0],
-  [0, 7, 0, 0, 9, 0, 2, 0, 0],
-  [0, 5, 0, 0, 0, 7, 0, 0, 0],
-  [0, 0, 0, 0, 4, 5, 7, 0, 0],
-  [0, 0, 0, 1, 0, 0, 0, 3, 0],
-  [0, 0, 1, 0, 0, 0, 0, 6, 8],
-  [0, 0, 8, 5, 0, 0, 0, 1, 0],
-  [0, 9, 0, 0, 0, 0, 4, 0, 0],
-];
-
-const evenHarderBoard = [
-  [0, 8, 6, 9, 0, 0, 1, 7, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 4, 0, 8, 0, 3, 0, 0, 2],
-  [0, 5, 0, 0, 0, 8, 0, 0, 9],
-  [0, 0, 2, 0, 6, 0, 3, 0, 0],
-  [9, 0, 0, 1, 0, 0, 0, 4, 0],
-  [2, 0, 0, 4, 0, 6, 0, 9, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 6, 1, 0, 0, 7, 8, 2, 0],
-];
-
-const evenHarderBoard2 = [
-  [0, 8, 6, 9, 0, 0, 1, 7, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 4, 0, 8, 0, 3, 0, 0, 2],
-  [0, 5, 0, 0, 0, 8, 0, 0, 9],
-  [0, 0, 2, 0, 6, 0, 0, 0, 0],
-  [9, 0, 0, 1, 0, 0, 0, 4, 0],
-  [2, 0, 0, 4, 0, 6, 0, 9, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 6, 1, 0, 0, 7, 8, 2, 0],
-];
-
-const harderBoard = [
-  [8, 0, 0, 0, 0, 5, 2, 0, 0],
-  [0, 0, 0, 0, 6, 0, 0, 3, 0],
-  [9, 0, 0, 0, 0, 0, 5, 0, 0],
-  [0, 7, 3, 0, 0, 0, 0, 6, 0],
-  [0, 0, 0, 0, 2, 8, 0, 0, 5],
-  [0, 5, 0, 6, 0, 0, 0, 0, 0],
-  [0, 2, 0, 0, 0, 0, 0, 0, 9],
-  [4, 0, 0, 0, 0, 0, 0, 0, 8],
-  [0, 0, 6, 7, 3, 0, 0, 2, 0],
-];
-
-const hardBoard = [
-  [7, 0, 0, 0, 0, 4, 0, 2, 0],
-  [0, 9, 0, 0, 0, 0, 3, 0, 0],
-  [0, 0, 0, 0, 0, 6, 0, 0, 8],
-  [0, 8, 0, 9, 0, 0, 0, 0, 0],
-  [0, 3, 5, 0, 0, 0, 0, 0, 9],
-  [0, 0, 0, 0, 7, 2, 0, 4, 0],
-  [0, 0, 9, 5, 2, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 8, 6, 7],
-  [1, 0, 0, 3, 0, 0, 0, 0, 0],
-];
-
-const hardBoard2 = [
-  [0, 5, 0, 3, 7, 0, 1, 9, 0],
-  [0, 0, 6, 0, 0, 0, 0, 5, 0],
-  [0, 0, 0, 8, 0, 0, 0, 0, 0],
-  [0, 6, 0, 5, 1, 0, 3, 0, 0],
-  [4, 0, 0, 0, 0, 0, 0, 0, 2],
-  [0, 0, 0, 0, 0, 9, 0, 0, 0],
-  [0, 0, 2, 7, 9, 0, 0, 0, 3],
-  [0, 0, 0, 0, 0, 6, 9, 0, 0],
-  [0, 7, 0, 0, 0, 8, 0, 0, 0],
-];
-
-const hardBoard3 = [
-  [0, 8, 0, 0, 0, 0, 2, 0, 9],
-  [0, 0, 0, 0, 0, 2, 0, 8, 0],
-  [0, 0, 0, 1, 0, 0, 0, 3, 0],
-  [4, 1, 0, 0, 0, 8, 3, 0, 0],
-  [0, 0, 0, 0, 0, 4, 0, 0, 6],
-  [0, 7, 0, 0, 5, 0, 0, 1, 8],
-  [0, 0, 8, 0, 0, 0, 0, 5, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 3, 5, 6, 4, 9, 0, 0, 0],
-];
-
-const mediumBoard = [
-  [0, 5, 0, 0, 6, 4, 7, 3, 2],
-  [0, 7, 0, 5, 0, 0, 4, 0, 8],
-  [4, 0, 0, 0, 8, 0, 0, 6, 0],
-  [0, 0, 0, 0, 2, 9, 0, 5, 0],
-  [2, 0, 4, 0, 0, 7, 1, 9, 0],
-  [0, 0, 5, 3, 0, 0, 0, 0, 7],
-  [0, 0, 0, 0, 0, 0, 0, 7, 0],
-  [7, 0, 0, 0, 0, 0, 9, 4, 6],
-  [6, 0, 0, 0, 0, 0, 8, 0, 5],
-];
-
-const exhaustiveBoard = [
-  [0, 0, 6, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 6, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [5, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 6, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-];
-
-const exhaustiveBoard2 = [
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [4, 0, 5, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 6, 0, 0, 0, 0],
-  [3, 0, 7, 0, 0, 0, 0, 0, 0],
-  [2, 0, 8, 0, 0, 0, 0, 0, 0],
-  [1, 0, 9, 0, 0, 0, 0, 0, 0],
-  [0, 0, 4, 0, 0, 0, 0, 0, 0],
-];
-
-const easyBoard = [
-  [5, 3, 0, 0, 7, 0, 0, 0, 0],
-  [6, 0, 0, 1, 9, 5, 0, 0, 0],
-  [0, 9, 8, 0, 0, 0, 0, 6, 0],
-  [8, 0, 0, 0, 6, 0, 0, 0, 3],
-  [4, 0, 0, 8, 0, 3, 0, 0, 1],
-  [7, 0, 0, 0, 2, 0, 0, 0, 6],
-  [0, 6, 0, 0, 0, 0, 2, 8, 0],
-  [0, 0, 0, 4, 1, 9, 0, 0, 5],
-  [0, 0, 0, 0, 8, 0, 0, 7, 9],
-];
-
-const dummyBoard = [
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 9, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-];
-
-const invalidBoard = [
-  [1, 1, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-];
-
-const emptyBoard = [
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0],
-];
-
-// http://www.sudokufans.org.cn/forums/topic/438/
-const hardestBoardCodes = [
-  "016300000008000000490070200000057000000040900050100060081000030000000008900005700",
-  "000000800002070040000300601600100005009040000000057000007005090300000108080000000",
-  "061300000400070020080000000005100600000040090000057000000000008018000300900005070",
-  "090000004100000860800005010000001030000540007050700000300006000070090002008000000",
-  "007090002300006000080000000005700000000540007000001300009000004800005100100000680",
-];
-
-const toBoard = (code) => {
-  const board = deepCopy(emptyBoard);
-  for (let i = 0; i < 9; i++) {
-    for (let j = 0; j < 9; j++) {
-      board[i][j] = +code[i * 9 + j];
-    }
-  }
-  return board;
-};
-
-// analyze(exhaustiveBoard2);
-// analyze(unsolvableBoard3);
-
-for (const code of hardestBoardCodes) {
-  analyze(toBoard(code));
-}
-
-/** Features */
-
-// 1. logic solve (simple solve/exhaustive solve)
-// 2. guess solve
-// 3. steps
-// 4. uncertainty level
-// 5. tests
-// 6. UX and UI?
-// 7. all possible solutions?
-// 8. generate the hardest sudoku?

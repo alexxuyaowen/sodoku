@@ -1,0 +1,12 @@
+.row {
+  display: flex;
+}
+
+input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+input {
+  text-align: center;
+}
