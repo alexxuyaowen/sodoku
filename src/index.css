@@ -6,19 +6,15 @@
 .main {
   width: fit-content;
   margin: auto;
+  margin-top: 64px;
 }
 
 .row {
   display: flex;
 }
 
-button {
-  height: 50px;
-  width: 50px;
-}
-
 .buttons {
-  margin-top: 25px;
+  margin-top: 50px;
   display: flex;
   justify-content: space-around;
 }
@@ -27,13 +23,13 @@ input {
   text-align: center;
   height: 50px;
   width: 50px;
-  font-size: 25px;
+  font-size: 24px;
   caret-color: transparent;
   user-select: none;
 }
 
 input:focus {
-  background-color: #ccc;
+  background-color: #ddd;
 }
 
 input::selection {

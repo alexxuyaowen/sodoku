@@ -1,15 +1,16 @@
 import { useState } from "react";
-import Icon from "@mdi/react";
 import { IconButton } from "@mui/material";
-import { mdiCheckBold, mdiUndo, mdiCloseThick } from "@mdi/js";
+import UndoIcon from "@mui/icons-material/Undo";
+import CheckIcon from "@mui/icons-material/Check";
+import ClearIcon from "@mui/icons-material/Clear";
 import { EMPTY_BOARD, VALID_VALUES } from "./utils/constants";
 import { solve } from "./utils/solve";
 import "./index.css";
 
 export default function App() {
   const [board, setBoard] = useState(EMPTY_BOARD);
-  const [error, setError] = useState(false);
   const [unsolvedBoard, setUnsolvedBoard] = useState();
+  const [error, setError] = useState(false);
 
   const handleChange = (e, { x, y }) => {
     setBoard((prev) =>
@@ -50,6 +51,9 @@ export default function App() {
     setUnsolvedBoard();
   };
 
+  const conditionalBorder = (condition) =>
+    `${condition ? 3 : 0.5}px solid black`;
+
   return (
     <div className="main">
       {board.map((row, x) => (
@@ -60,15 +64,13 @@ export default function App() {
                 borderRadius: 0,
                 borderWidth: 0.5,
                 color: error ? "red" : "black",
-                borderTop: Number.isInteger(x / 3)
-                  ? "3px solid black"
-                  : "0.5px solid black",
-                borderLeft: Number.isInteger(y / 3)
-                  ? "3px solid black"
-                  : "0.5px solid black",
-                borderBottom: x === 8 ? "3px solid black" : "0.5px solid black",
-                borderRight: y === 8 ? "3px solid black" : "0.5px solid black",
+                borderTop: conditionalBorder(Number.isInteger(x / 3)),
+                borderLeft: conditionalBorder(Number.isInteger(y / 3)),
+                borderBottom: conditionalBorder(x === 8),
+                borderRight: conditionalBorder(y === 8),
               }}
+              type="tel"
+              pattern="[0–9]*"
               disabled={error}
               value={value}
               onChange={(e) => handleChange(e, { x, y })}
@@ -79,15 +81,26 @@ export default function App() {
       <div className="buttons">
         {unsolvedBoard ? (
           <IconButton onClick={unsolveBoard}>
-            <Icon path={mdiUndo} color="gray" />
+            <UndoIcon
+              sx={{ stroke: "gray", strokeWidth: 2, fontSize: 32, padding: 1 }}
+            />
           </IconButton>
         ) : (
           <IconButton onClick={solveBoard}>
-            <Icon path={mdiCheckBold} color="green" />
+            <CheckIcon
+              sx={{
+                stroke: "green",
+                strokeWidth: 2,
+                fontSize: 32,
+                padding: 1,
+              }}
+            />
           </IconButton>
         )}
         <IconButton onClick={clearBoard}>
-          <Icon path={mdiCloseThick} color="red" />
+          <ClearIcon
+            sx={{ stroke: "red", strokeWidth: 2, fontSize: 32, padding: 1 }}
+          />
         </IconButton>
       </div>
     </div>
