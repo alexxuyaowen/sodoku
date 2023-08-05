@@ -1,4 +1,7 @@
 import { useState } from "react";
+import Icon from "@mdi/react";
+import { IconButton } from "@mui/material";
+import { mdiCheckBold, mdiUndo, mdiCloseThick } from "@mdi/js";
 import { EMPTY_BOARD, VALID_VALUES } from "./utils/constants";
 import { solve } from "./utils/solve";
 import "./index.css";
@@ -39,6 +42,7 @@ export default function App() {
 
   const unsolveBoard = () => {
     setBoard(unsolvedBoard);
+    setUnsolvedBoard();
   };
 
   const clearBoard = () => {
@@ -73,11 +77,18 @@ export default function App() {
         </div>
       ))}
       <div className="buttons">
-        <button onClick={unsolveBoard} disabled={!unsolvedBoard}>
-          o
-        </button>
-        <button onClick={solveBoard}>O</button>
-        <button onClick={clearBoard}>X</button>
+        {unsolvedBoard ? (
+          <IconButton onClick={unsolveBoard}>
+            <Icon path={mdiUndo} color="gray" />
+          </IconButton>
+        ) : (
+          <IconButton onClick={solveBoard}>
+            <Icon path={mdiCheckBold} color="green" />
+          </IconButton>
+        )}
+        <IconButton onClick={clearBoard}>
+          <Icon path={mdiCloseThick} color="red" />
+        </IconButton>
       </div>
     </div>
   );

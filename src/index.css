@@ -13,22 +13,21 @@
 }
 
 button {
-  margin-top: 50px;
-  border-radius: 50px;
   height: 50px;
   width: 50px;
 }
 
 .buttons {
+  margin-top: 25px;
   display: flex;
   justify-content: space-around;
 }
 
 input {
   text-align: center;
-  height: 64px;
-  width: 64px;
-  font-size: 32px;
+  height: 50px;
+  width: 50px;
+  font-size: 25px;
   caret-color: transparent;
   user-select: none;
 }
