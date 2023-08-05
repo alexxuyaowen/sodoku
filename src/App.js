@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { IconButton } from "@mui/material";
-import UndoIcon from "@mui/icons-material/Undo";
-import CheckIcon from "@mui/icons-material/Check";
-import ClearIcon from "@mui/icons-material/Clear";
-import { EMPTY_BOARD, VALID_VALUES } from "./utils/constants";
-import { solve } from "./utils/solve";
+import {
+  Undo as UndoIcon,
+  Check as CheckIcon,
+  Clear as ClearIcon,
+} from "@mui/icons-material";
+import { EMPTY_BOARD } from "./constants";
+import { solve, conditionalBorder, validatedValue } from "./utils";
 import "./index.css";
 
 export default function App() {
@@ -24,11 +26,6 @@ export default function App() {
     );
   };
 
-  const validatedValue = (value) => {
-    const val = +value.at(-1);
-    return VALID_VALUES.has(+val) ? val : "";
-  };
-
   const solveBoard = () => {
     const result = solve(board);
     if (result.board) {
@@ -37,7 +34,9 @@ export default function App() {
     } else {
       setBoard(board);
       setError(true);
-      setTimeout(() => setError(false), 1000);
+      setTimeout(() => {
+        setError(false);
+      }, 1000);
     }
   };
 
@@ -51,15 +50,13 @@ export default function App() {
     setUnsolvedBoard();
   };
 
-  const conditionalBorder = (condition) =>
-    `${condition ? 3 : 0.5}px solid black`;
-
   return (
     <div className="main">
       {board.map((row, x) => (
-        <div className="row">
+        <div key={-x} className="row">
           {row.map((value, y) => (
             <input
+              key={x * 9 + y}
               style={{
                 borderRadius: 0,
                 borderWidth: 0.5,
