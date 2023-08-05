@@ -11,3 +11,5 @@ export const validatedValue = (value) => {
 
 export const conditionalBorder = (condition) =>
   `${condition ? 3 : 0.5}px solid black`;
+
+export const to1D = (x, y) => x * 9 + y;

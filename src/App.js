@@ -1,18 +1,43 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IconButton } from "@mui/material";
 import {
   Undo as UndoIcon,
   Check as CheckIcon,
   Clear as ClearIcon,
+  Quiz as QuizIcon,
 } from "@mui/icons-material";
 import { EMPTY_BOARD } from "./constants";
-import { solve, conditionalBorder, validatedValue } from "./utils";
+import { solve, conditionalBorder, validatedValue, to1D } from "./utils";
 import "./index.css";
 
 export default function App() {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [unsolvedBoard, setUnsolvedBoard] = useState();
   const [error, setError] = useState(false);
+  const [nextStep, setNextStep] = useState();
+  const refs = useRef([]);
+
+  useEffect(() => {
+    if (nextStep) {
+      const { x, y, val, needGuess } = nextStep;
+      const ref = refs.current[to1D(x, y)];
+
+      ref.style.backgroundColor = "#ddd";
+      ref.style.color = needGuess ? "dodgerblue" : "yellowgreen";
+      ref.value = val;
+
+      const timeout = setTimeout(() => {
+        ref.style.backgroundColor = "transparent";
+        ref.style.color = "black";
+        ref.value = "";
+        setNextStep();
+      }, 2000);
+
+      return () => {
+        clearTimeout(timeout);
+      };
+    }
+  }, [nextStep]);
 
   const handleChange = (e, { x, y }) => {
     setBoard((prev) =>
@@ -32,11 +57,7 @@ export default function App() {
       setBoard(result.board);
       setUnsolvedBoard(board);
     } else {
-      setBoard(board);
-      setError(true);
-      setTimeout(() => {
-        setError(false);
-      }, 1000);
+      erroring();
     }
   };
 
@@ -50,13 +71,32 @@ export default function App() {
     setUnsolvedBoard();
   };
 
+  const showNextStep = () => {
+    const result = solve(board).steps?.at(0);
+    if (result) {
+      setNextStep(result);
+    } else {
+      erroring();
+    }
+  };
+
+  const erroring = () => {
+    setError(true);
+    setTimeout(() => {
+      setError(false);
+    }, 1000);
+  };
+
   return (
     <div className="main">
       {board.map((row, x) => (
         <div key={-x} className="row">
           {row.map((value, y) => (
             <input
-              key={x * 9 + y}
+              key={to1D(x, y)}
+              ref={(ref) => {
+                refs.current[to1D(x, y)] = ref;
+              }}
               style={{
                 borderRadius: 0,
                 borderWidth: 0.5,
@@ -76,6 +116,9 @@ export default function App() {
         </div>
       ))}
       <div className="buttons">
+        <IconButton onClick={showNextStep}>
+          <QuizIcon color="info" sx={{ fontSize: 32, padding: 1 }} />
+        </IconButton>
         {unsolvedBoard ? (
           <IconButton onClick={unsolveBoard}>
             <UndoIcon
@@ -86,7 +129,7 @@ export default function App() {
           <IconButton onClick={solveBoard}>
             <CheckIcon
               sx={{
-                stroke: "green",
+                stroke: "yellowgreen",
                 strokeWidth: 2,
                 fontSize: 32,
                 padding: 1,
@@ -96,7 +139,7 @@ export default function App() {
         )}
         <IconButton onClick={clearBoard}>
           <ClearIcon
-            sx={{ stroke: "red", strokeWidth: 2, fontSize: 32, padding: 1 }}
+            sx={{ stroke: "tomato", strokeWidth: 2, fontSize: 32, padding: 1 }}
           />
         </IconButton>
       </div>

@@ -29,7 +29,7 @@ input {
 }
 
 input:focus {
-  background-color: #ddd;
+  background-color: #ddd !important;
 }
 
 input::selection {
