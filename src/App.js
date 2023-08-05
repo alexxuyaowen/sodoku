@@ -21,7 +21,7 @@ export default function App() {
   };
 
   const validatedValue = (value) => {
-    const val = +value[0];
+    const val = +value.at(-1);
     return VALID_VALUES.has(+val) ? val : "";
   };
 

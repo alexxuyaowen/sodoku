@@ -1,3 +1,8 @@
+* {
+  outline: none;
+  box-shadow: none;
+}
+
 .main {
   width: fit-content;
   margin: auto;
@@ -5,16 +10,6 @@
 
 .row {
   display: flex;
-}
-
-input:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-button:focus {
-  outline: none;
-  box-shadow: none;
 }
 
 button {
@@ -34,4 +29,14 @@ input {
   height: 64px;
   width: 64px;
   font-size: 32px;
+  caret-color: transparent;
+  user-select: none;
+}
+
+input:focus {
+  background-color: #ccc;
+}
+
+input::selection {
+  background: transparent;
 }
