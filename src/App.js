@@ -5,6 +5,7 @@ import "./index.css";
 
 export default function App() {
   const [board, setBoard] = useState(EMPTY_BOARD);
+  const [error, setError] = useState(false);
   const [unsolvedBoard, setUnsolvedBoard] = useState();
 
   const handleChange = (e, { x, y }) => {
@@ -25,8 +26,15 @@ export default function App() {
   };
 
   const solveBoard = () => {
-    setUnsolvedBoard(board);
-    setBoard(solve(board).board || board);
+    const result = solve(board);
+    if (result.board) {
+      setBoard(result.board);
+      setUnsolvedBoard(board);
+    } else {
+      setBoard(board);
+      setError(true);
+      setTimeout(() => setError(false), 1000);
+    }
   };
 
   const unsolveBoard = () => {
@@ -35,26 +43,42 @@ export default function App() {
 
   const clearBoard = () => {
     setBoard(EMPTY_BOARD);
-    setUnsolvedBoard(EMPTY_BOARD);
+    setUnsolvedBoard();
   };
 
   return (
-    <Fragment>
+    <div className="main">
       {board.map((row, x) => (
-        <div className='row'>
+        <div className="row">
           {row.map((value, y) => (
             <input
-              style={{ borderRadius: 0, borderWidth: 0.5 }}
+              style={{
+                borderRadius: 0,
+                borderWidth: 0.5,
+                color: error ? "red" : "black",
+                borderTop: Number.isInteger(x / 3)
+                  ? "3px solid black"
+                  : "0.5px solid black",
+                borderLeft: Number.isInteger(y / 3)
+                  ? "3px solid black"
+                  : "0.5px solid black",
+                borderBottom: x === 8 ? "3px solid black" : "0.5px solid black",
+                borderRight: y === 8 ? "3px solid black" : "0.5px solid black",
+              }}
+              disabled={error}
               value={value}
               onChange={(e) => handleChange(e, { x, y })}
-              size={1}
             />
           ))}
         </div>
       ))}
-      <button onClick={solveBoard}>O</button>
-      <button onClick={unsolveBoard}>o</button>
-      <button onClick={clearBoard}>X</button>
-    </Fragment>
+      <div className="buttons">
+        <button onClick={unsolveBoard} disabled={!unsolvedBoard}>
+          o
+        </button>
+        <button onClick={solveBoard}>O</button>
+        <button onClick={clearBoard}>X</button>
+      </div>
+    </div>
   );
 }
