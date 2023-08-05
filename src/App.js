@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { EMPTY_BOARD, VALID_VALUES } from "./utils/constants";
 import { solve } from "./utils/solve";
 import "./index.css";
