@@ -1,2 +1,0 @@
-*{box-shadow:none;outline:none}.main{margin:64px auto auto;width:-webkit-fit-content;width:-moz-fit-content;width:fit-content}.buttons,.row{display:flex}.buttons{justify-content:space-around;margin-top:50px}input{caret-color:transparent;font-size:24px;height:50px;text-align:center;-webkit-user-select:none;user-select:none;width:50px}input:focus{background-color:#ddd!important}input:disabled{background-color:initial;opacity:1}input::selection{background:transparent}@media (max-width:999px){input{height:64px}}
-/*# sourceMappingURL=main.6353acf9.css.map*/
