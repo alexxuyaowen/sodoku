@@ -54,6 +54,14 @@ export default function App() {
   const solveBoard = () => {
     const result = solve(board);
     if (result.board) {
+      board.forEach((row, x) => {
+        row.forEach((val, y) => {
+          const ref = refs.current[to1D(x, y)];
+          if (!val) {
+            ref.style.color = "yellowgreen";
+          }
+        });
+      });
       setBoard(result.board);
       setUnsolvedBoard(board);
     } else {
@@ -64,6 +72,13 @@ export default function App() {
   const unsolveBoard = () => {
     setBoard(unsolvedBoard);
     setUnsolvedBoard();
+
+    board.forEach((row, x) => {
+      row.forEach((_, y) => {
+        const ref = refs.current[to1D(x, y)];
+        ref.style.color = "black";
+      });
+    });
   };
 
   const clearBoard = () => {
@@ -108,41 +123,57 @@ export default function App() {
               }}
               type="tel"
               pattern="[0–9]*"
-              disabled={error}
+              disabled={error || !!unsolvedBoard}
               value={value}
               onChange={(e) => handleChange(e, { x, y })}
             />
           ))}
         </div>
       ))}
-      <div className="buttons">
-        <IconButton onClick={showNextStep}>
-          <QuizIcon color="info" sx={{ fontSize: 32, padding: 1 }} />
-        </IconButton>
-        {unsolvedBoard ? (
-          <IconButton onClick={unsolveBoard}>
-            <UndoIcon
-              sx={{ stroke: "gray", strokeWidth: 2, fontSize: 32, padding: 1 }}
-            />
-          </IconButton>
-        ) : (
-          <IconButton onClick={solveBoard}>
-            <CheckIcon
-              sx={{
-                stroke: "yellowgreen",
-                strokeWidth: 2,
-                fontSize: 32,
-                padding: 1,
-              }}
-            />
-          </IconButton>
-        )}
-        <IconButton onClick={clearBoard}>
-          <ClearIcon
-            sx={{ stroke: "tomato", strokeWidth: 2, fontSize: 32, padding: 1 }}
-          />
-        </IconButton>
-      </div>
+      {!error && !nextStep && (
+        <div className="buttons">
+          {!unsolvedBoard && (
+            <IconButton onClick={showNextStep}>
+              <QuizIcon color="info" sx={{ fontSize: 32, padding: 1 }} />
+            </IconButton>
+          )}
+          {unsolvedBoard ? (
+            <IconButton onClick={unsolveBoard}>
+              <UndoIcon
+                sx={{
+                  stroke: "gray",
+                  strokeWidth: 2,
+                  fontSize: 32,
+                  padding: 1,
+                }}
+              />
+            </IconButton>
+          ) : (
+            <IconButton onClick={solveBoard}>
+              <CheckIcon
+                sx={{
+                  stroke: "yellowgreen",
+                  strokeWidth: 2,
+                  fontSize: 32,
+                  padding: 1,
+                }}
+              />
+            </IconButton>
+          )}
+          {!unsolvedBoard && (
+            <IconButton onClick={clearBoard}>
+              <ClearIcon
+                sx={{
+                  stroke: "tomato",
+                  strokeWidth: 2,
+                  fontSize: 32,
+                  padding: 1,
+                }}
+              />
+            </IconButton>
+          )}
+        </div>
+      )}
     </div>
   );
 }
