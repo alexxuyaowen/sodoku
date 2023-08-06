@@ -32,6 +32,17 @@ input:focus {
   background-color: #ddd !important;
 }
 
+input:disabled {
+  opacity: 1;
+  background-color: #eee !important;
+}
+
 input::selection {
   background: transparent;
+}
+
+@media (width < 1000px) {
+  input {
+    height: 64px;
+  }
 }

@@ -31,7 +31,7 @@ export default function App() {
         ref.style.color = "black";
         ref.value = "";
         setNextStep();
-      }, 2000);
+      }, 1000);
 
       return () => {
         clearTimeout(timeout);
