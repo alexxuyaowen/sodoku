@@ -33,15 +33,15 @@ input:focus {
 }
 
 input:disabled {
-  opacity: 1;
-  background-color: #eee !important;
+  cursor: not-allowed;
+  background-color: transparent;
 }
 
 input::selection {
-  background: transparent;
+  background-color: transparent;
 }
 
-@media (width < 1000px) {
+@media (width < 600px) {
   input {
     height: 64px;
   }

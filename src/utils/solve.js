@@ -246,7 +246,7 @@ const guessSolve = (board, toGuess, history = [], steps) => {
             x: h.toGuess.x,
             y: h.toGuess.y,
             val: h.toGuess.vals[0],
-            needGuess: true,
+            isGuessed: true,
           });
           const simpleSteps = h.logicSolvedSteps?.map((step) => ({
             ...step,
